@@ -42,7 +42,7 @@ void check_batch_mode(char prompt)
         printf("%c ", prompt);
     } else if (file_descriptor_no != 0) {
         // file_descriptor_no != 0 => error
-        printf("errno: %d\n", file_descriptor_no);
+        printf("batch mode unavailable, errno: %d\n", file_descriptor_no);
         exit(file_descriptor_no);
     }
 }
