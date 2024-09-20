@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h> 
+#include <dirent.h>
 #include "shellmemory.h"
 #include "shell.h"
+#include "helpers.h"
 
 int MAX_ARGS_SIZE = 1000;
 
@@ -22,8 +24,8 @@ int quit();
 int set(char* var, char* value);
 int print(char* var);
 int run(char* script);
-int badcommandFileDoesNotExist();
 int my_ls();
+int badcommandFileDoesNotExist();
 
 // Interpret commands and their arguments
 int interpreter(char* command_args[], int args_size) {
@@ -80,7 +82,24 @@ int interpreter(char* command_args[], int args_size) {
 }
 
 int my_ls() {
+    struct dirent **namelist;
+    int n, i; 
 
+    n = scandir(".", &namelist, my_ls_filter, my_ls_sort);
+    if (n < 0) {
+        printf("scandir error");
+        exit(EXIT_FAILURE);
+    }
+
+    i = 0;
+    while(i < n) {
+        printf("%s\n", namelist[i] -> d_name);
+        free(namelist[i]); 
+        i++;
+    }
+    free(namelist);
+
+    return 0;
 }
 
 int help() {
