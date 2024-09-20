@@ -23,6 +23,7 @@ int set(char* var, char* value);
 int print(char* var);
 int run(char* script);
 int badcommandFileDoesNotExist();
+int my_ls();
 
 // Interpret commands and their arguments
 int interpreter(char* command_args[], int args_size) {
@@ -71,7 +72,15 @@ int interpreter(char* command_args[], int args_size) {
         if (args_size != 2) return badcommand();
         return run(command_args[1]);
     
+    } else if (strcmp(command_args[0], "my_ls") == 0) {
+        if (args_size != 1) return badcommand();
+        return my_ls();
+
     } else return badcommand();
+}
+
+int my_ls() {
+
 }
 
 int help() {
