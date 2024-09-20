@@ -7,6 +7,7 @@
 #include "shellmemory.h"
 
 int parseInput(char ui[]);
+int isInteractiveMode();
 
 // Start of everything
 int main(int argc, char *argv[]) {
@@ -24,9 +25,16 @@ int main(int argc, char *argv[]) {
     
     //init shell memory
     mem_init();
-    while(1) {
-        check_batch_mode(prompt);
-        fgets(userInput, MAX_USER_INPUT-1, stdin);
+    while (1) {
+        if (isInteractiveMode()) {
+            printf("%c ", prompt);
+        }
+
+        // If no "quit" command is found in batch mode, check for EOF and exit 
+        if (fgets(userInput, MAX_USER_INPUT-1, stdin) == NULL && feof(stdin)) {
+            exit(0);
+        }
+
         errorCode = parseInput(userInput);
         if (errorCode == -1) exit(99);	// ignore all other errors
         memset(userInput, 0, sizeof(userInput));
@@ -35,16 +43,13 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void check_batch_mode(char prompt)
-{
-    int file_descriptor_no = isatty(STDIN_FILENO);
-    if (file_descriptor_no == 1) {
-        printf("%c ", prompt);
-    } else if (file_descriptor_no != 0) {
-        // file_descriptor_no != 0 => error
-        printf("batch mode unavailable, errno: %d\n", file_descriptor_no);
-        exit(file_descriptor_no);
+int isInteractiveMode() {
+    int file_desc_no = isatty(STDIN_FILENO);
+    if (file_desc_no != 0 && file_desc_no != 1) {
+        printf("Batch mode unavailable, ERRNO: %d\n", file_desc_no);
+        exit(file_desc_no);  
     }
+    return file_desc_no; 
 }
 
 int wordEnding(char c) {
