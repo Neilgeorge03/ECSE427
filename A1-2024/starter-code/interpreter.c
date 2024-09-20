@@ -70,7 +70,23 @@ int interpreter(char* command_args[], int args_size) {
     } else if (strcmp(command_args[0], "run") == 0) {
         if (args_size != 2) return badcommand();
         return run(command_args[1]);
-    
+
+    } else if (strcmp(command_args[0], "echo") == 0){
+
+	// Check if first character of string is a '$' sign
+	if (command_args[1][0] != '$'){
+		printf("%s\n", command_args[1]);
+		return 0;
+	}
+	
+	char* ans = mem_get_value(strtok(command_args[1], "$"));
+
+	if (strcmp(ans, "Variable does not exist") == 0){
+		printf("\n");
+		return 5;
+	}	
+	printf("%s\n", ans);
+	return 0;
     } else return badcommand();
 }
 
