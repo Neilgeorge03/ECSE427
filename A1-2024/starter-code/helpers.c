@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <ctype.h>
 #include <dirent.h>
 #include <string.h>
@@ -49,4 +50,14 @@ int my_ls_sort(const struct dirent **namelist_one, const struct dirent **namelis
     }
 
     return 0; 
+}
+
+int check_alphanum(char *name) {
+    for (int i = 0; i < strlen(name); i++) {
+        if(!isalnum(name[i])) {
+            printf("Name must strictly be alphanumeric.\n");
+            return 3;
+        }
+    }
+    return 0;
 }

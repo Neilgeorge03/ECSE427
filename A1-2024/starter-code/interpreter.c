@@ -1,9 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <ctype.h> 
-#include "shellmemory.h"
-#include "shell.h"
+#include <string.h> 
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -14,6 +11,7 @@
 int MAX_ARGS_SIZE = 1000;
 char* CURRENT_LOCATION = ".";
 struct stat s;
+
 int badcommand(){
     printf("Unknown Command\n");
     return 1;
@@ -30,7 +28,7 @@ int quit();
 int my_touch(char *filename);
 int my_mkdir(char *folder);
 int my_cd(char *folder);
-//int set(char* var, char* value);
+int set(char* arguments[], int argumentSize);
 int print(char* var);
 int run(char* script);
 int my_ls();
@@ -52,16 +50,17 @@ int interpreter(char* command_args[], int args_size) {
     }
 
     if (strcmp(command_args[0], "help") == 0){
-        //help
         if (args_size != 1) return badcommand();
         return help();
+
     } else if (strcmp(command_args[0], "quit") == 0) {
-        //quit
         if (args_size != 1) return badcommand();
         return quit();
+
     } else if (strcmp(command_args[0], "my_touch") == 0) {
         if (args_size != 2) return badcommand();
         return my_touch(command_args[1]);
+
     } else if (strcmp(command_args[0], "set") == 0) {
         //set
         if (args_size < 3) return badcommand();
@@ -70,6 +69,7 @@ int interpreter(char* command_args[], int args_size) {
             return 3;
         }
         return set(command_args, args_size);
+
     } else if (strcmp(command_args[0], "print") == 0) {
         if (args_size != 2) return badcommand();
         return print(command_args[1]);
@@ -77,34 +77,38 @@ int interpreter(char* command_args[], int args_size) {
     } else if (strcmp(command_args[0], "run") == 0) {
         if (args_size != 2) return badcommand();
         return run(command_args[1]);
+
     } else if (strcmp(command_args[0], "echo") == 0){
         if (args_size != 2) return badcommand();	// Check if first character of string is a '$' sign
         return echo(command_args);
+
     } else if (strcmp(command_args[0], "my_mkdir") == 0) {
         if (args_size != 2) return badcommand();
         return my_mkdir(command_args[1]);
-    }
-    else if (strcmp(command_args[0], "my_cd") == 0) {
+
+    } else if (strcmp(command_args[0], "my_cd") == 0) {
         if (args_size != 2) return badcommand();
         return my_cd(command_args[1]);
+
     } else if (strcmp(command_args[0], "my_ls") == 0) {
         if (args_size != 1) return badcommand();
         return my_ls();
+
     } else return badcommand();
 }
 
 int my_ls() {
     struct dirent **namelist;
-    int n, i; 
+    int no_of_entries, i; 
 
-    n = scandir(".", &namelist, my_ls_filter, my_ls_sort);
-    if (n < 0) {
+    no_of_entries = scandir(".", &namelist, my_ls_filter, my_ls_sort);
+    if (no_of_entries < 0) {
         printf("scandir error");
         exit(EXIT_FAILURE);
     }
 
     i = 0;
-    while(i < n) {
+    while(i < no_of_entries) {
         printf("%s\n", namelist[i] -> d_name);
         free(namelist[i]); 
         i++;
@@ -130,12 +134,7 @@ run SCRIPT.TXT		Executes the file SCRIPT.TXT\n ";
 int my_touch(char *filename) {
 
     // input validation
-    for (int i = 0; i < strlen(filename); i++) {
-        if(!isalnum(filename[i])) {
-            printf("Name must strictly be alphanumeric.\n");
-            return -1;
-        }
-    }
+    if (check_alphanum(filename) != 0) return 3;
 
     FILE *pfile = fopen(filename, "w");
     if (pfile == NULL) {
@@ -151,6 +150,7 @@ int quit() {
     printf("Bye!\n");
     exit(0);
 }
+
 int my_mkdir(char *folder){
     if (folder[0] == '$') {
         folder = mem_get_value(strtok(folder, "$"));
@@ -159,29 +159,25 @@ int my_mkdir(char *folder){
             return 3;
         }
     }
-    for (int i = 0; i < strlen(folder); i++) {
-        if (!isalnum(folder[i])) {
-            printf("Name must strictly be alphanumeric.\n");
-            return 3;
-        }
-    }
+
+    // input validation 
+    if (check_alphanum(folder) != 0) return 3;
 
     if (mkdir(folder, 0755) == 0) return 0;
     printf("Bad command: my_mkdir\n");
     return 3;
 
 }
+
 int my_cd(char *folder){
-    for (int i = 0; i < strlen(folder); i++) {
-        if (!isalnum(folder[i])) {
-            printf("Name must strictly be alphanumeric.\n");
-            return 3;
-        }
-    }
+    // input validation 
+    if (check_alphanum(folder) != 0) return 3;
+
     if (chdir(folder) == 0) return 0;
     printf("Bad command: my_cd\n");
-    return 3;
+    return -1;
 }
+
 int echo(char *arguments[]){
     if (arguments[1][0] != '$'){
         printf("%s\n", arguments[1]);
@@ -196,7 +192,7 @@ int echo(char *arguments[]){
     }
     printf("%s\n", ans);
     return 0;
-    }
+}
 
 
 int set(char* arguments[], int argumentSize) {
