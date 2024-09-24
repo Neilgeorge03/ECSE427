@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> 
+#include <string.h>
+#include <ctype.h> 
 #include "shellmemory.h"
 #include "shell.h"
 #include <dirent.h>
@@ -27,6 +28,7 @@ int badcommandFileDoesNotExist(){
 
 int help();
 int quit();
+int my_touch(char *filename);
 int my_mkdir(char *folder);
 int my_cd(char *folder);
 //int set(char* var, char* value);
@@ -57,6 +59,10 @@ int interpreter(char* command_args[], int args_size) {
         //quit
         if (args_size != 1) return badcommand();
         return quit();
+
+    } else if (strcmp(command_args[0], "my_touch") == 0) {
+        if (args_size != 2) return badcommand();
+        return my_touch(command_args[1]);
 
     } else if (strcmp(command_args[0], "set") == 0) {
         //set
@@ -99,6 +105,26 @@ set VAR STRING		Assigns a value to shell memory\n\
 print VAR		Displays the STRING assigned to VAR\n\
 run SCRIPT.TXT		Executes the file SCRIPT.TXT\n ";
     printf("%s\n", help_string);
+    return 0;
+}
+
+int my_touch(char *filename) {
+
+    // input validation
+    for (int i = 0; i < strlen(filename); i++) {
+        if(!isalnum(filename[i])) {
+            printf("Name must strictly be alphanumeric.\n");
+            return -1;
+        }
+    }
+
+    FILE *pfile = fopen(filename, "w");
+    if (pfile == NULL) {
+        printf("Failed to open file\n");
+        return -2;
+    }
+
+    fclose(pfile);
     return 0;
 }
 
