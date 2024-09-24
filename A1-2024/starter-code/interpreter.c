@@ -110,7 +110,10 @@ int my_mkdir(char *folder){
     if (folder[0] == '$') {
         folder = strtok(folder, "$");
     }
-
+    if (strcmp(folder, "Variable does not exist") == 0){
+        printf("Bad command: my_mkdir\n");
+        return 3;
+    }
     for (int i = 0; i < strlen(folder); i++) {
         if (!isalnum(folder[i])) {
             printf("Name must strictly be alphanumeric.\n");
@@ -118,7 +121,7 @@ int my_mkdir(char *folder){
         }
     }
 
-    if (mkdir(folder, 755) == 0) return 0;
+    if (mkdir(folder, 777) == 0) return 0;
     printf("Bad command: my_mkdir\n");
     return 3;
 
