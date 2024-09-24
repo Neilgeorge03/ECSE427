@@ -3,9 +3,17 @@
 #include <string.h> 
 #include "shellmemory.h"
 #include "shell.h"
+#include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <ctype.h>
+
+
 
 int MAX_ARGS_SIZE = 1000;
-
+char* CURRENT_LOCATION = ".";
+struct stat s;
 int badcommand(){
     printf("Unknown Command\n");
     return 1;
@@ -19,10 +27,14 @@ int badcommandFileDoesNotExist(){
 
 int help();
 int quit();
-int set(char* var, char* value);
+int my_mkdir(char *folder);
+int my_cd(char *folder);
+//int set(char* var, char* value);
 int print(char* var);
 int run(char* script);
 int badcommandFileDoesNotExist();
+int echo(char *arguments[]);
+int set(char *arguments[], int argumentSize);
 
 // Interpret commands and their arguments
 int interpreter(char* command_args[], int args_size) {
@@ -48,21 +60,13 @@ int interpreter(char* command_args[], int args_size) {
 
     } else if (strcmp(command_args[0], "set") == 0) {
         //set
-	if (args_size < 3) return badcommand();
-        if (args_size > 7) {
-		printf("Bad command: Too many tokens\n");
-		return 3;
+        if (args_size < 3) return badcommand();
+            if (args_size > 7) {
+            printf("Bad command: Too many tokens\n");
+            return 3;
 	
-	};
-	char ans[100];
-	strcpy(ans, command_args[2]);
-	for (int i = 3; i < args_size; i++){
-		strcat(ans, " ");	
-		strcat(ans, command_args[i]);
-
-	}	
-        return set(command_args[1], ans);
-    
+        };
+        return set(command_args, args_size);
     } else if (strcmp(command_args[0], "print") == 0) {
         if (args_size != 2) return badcommand();
         return print(command_args[1]);
@@ -72,32 +76,27 @@ int interpreter(char* command_args[], int args_size) {
         return run(command_args[1]);
 
     } else if (strcmp(command_args[0], "echo") == 0){
+        if (args_size != 2) return badcommand();	// Check if first character of string is a '$' sign
+        return echo(command_args);
+    } else if (strcmp(command_args[0], "my_mkdir") == 0) {
+        if (args_size != 2) return badcommand();
+        return my_mkdir(command_args[1]);
+    }
+    else if (strcmp(command_args[0], "my_cd") == 0) {
+        if (args_size != 2) return badcommand();
+        return my_cd(command_args[1]);
 
-	// Check if first character of string is a '$' sign
-	if (command_args[1][0] != '$'){
-		printf("%s\n", command_args[1]);
-		return 0;
-	}
-	
-	char* ans = mem_get_value(strtok(command_args[1], "$"));
-
-	if (strcmp(ans, "Variable does not exist") == 0){
-		printf("\n");
-		return 5;
-	}	
-	printf("%s\n", ans);
-	return 0;
     } else return badcommand();
 }
 
 int help() {
 
     // note the literal tab characters here for alignment
-    char help_string[] = "COMMAND			DESCRIPTION\n \
-help			Displays all the commands\n \
-quit			Exits / terminates the shell with “Bye!”\n \
-set VAR STRING		Assigns a value to shell memory\n \
-print VAR		Displays the STRING assigned to VAR\n \
+    char help_string[] = "COMMAND			DESCRIPTION\n\
+help			Displays all the commands\n\
+quit			Exits / terminates the shell with “Bye!”\n\
+set VAR STRING		Assigns a value to shell memory\n\
+print VAR		Displays the STRING assigned to VAR\n\
 run SCRIPT.TXT		Executes the file SCRIPT.TXT\n ";
     printf("%s\n", help_string);
     return 0;
@@ -107,9 +106,55 @@ int quit() {
     printf("Bye!\n");
     exit(0);
 }
+int my_mkdir(char *folder){
+    if (folder[0] == '$') {
+        folder = strtok(folder, "$");
+    }
+    if (strcmp(folder, "Variable does not exist") == 0){
+        printf("Bad command: my_mkdir\n");
+        return 3;
+    }
+    for (int i = 0; i < strlen(folder); i++) {
+        if (!isalnum(folder[i])) {
+            printf("Name must strictly be alphanumeric.\n");
+            return 3;
+        }
+    }
 
-int set(char *var, char *value) {
-    char *link = "=";
+    if (mkdir(folder, 777) == 0) return 0;
+    printf("Bad command: my_mkdir\n");
+    return 3;
+
+}
+int my_cd(char *folder){
+    for (int i = 0; i < strlen(folder); i++) {
+        if (!isalnum(folder[i])) {
+            printf("Name must strictly be alphanumeric.\n");
+            return 3;
+        }
+    }
+    if (chdir(folder) == 0) return 0;
+    printf("Bad command: my_cd\n");
+    return 3;
+}
+int echo(char *arguments[]){
+    if (arguments[1][0] != '$'){
+        printf("%s\n", arguments[1]);
+        return 0;
+    }
+
+    char* ans = mem_get_value(strtok(arguments[1], "$"));
+
+    if (strcmp(ans, "Variable does not exist") == 0){
+        printf("\n");
+        return 5;
+    }
+    printf("%s\n", ans);
+    return 0;
+    }
+
+
+int set(char* arguments[], int argumentSize) {
 
     /* PART 1: You might want to write code that looks something like this.
          You should look up documentation for strcpy and strcat.
@@ -121,8 +166,13 @@ int set(char *var, char *value) {
     */
 
     char ans[100];
-    
-    mem_set_value(var, value);
+    strcpy(ans, arguments[2]);
+    for (int i = 3; i < argumentSize; i++){
+        strcat(ans, " ");
+        strcat(ans, arguments[i]);
+
+    }
+    mem_set_value(arguments[1], ans);
 
     return 0;
 }
