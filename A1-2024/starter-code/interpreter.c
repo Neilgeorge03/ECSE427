@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+<<<<<<< HEAD
 #include <string.h>
 #include <ctype.h> 
 #include "shellmemory.h"
@@ -11,6 +12,13 @@
 #include <ctype.h>
 
 
+=======
+#include <string.h> 
+#include <dirent.h>
+#include "shellmemory.h"
+#include "shell.h"
+#include "helpers.h"
+>>>>>>> 9f24d9a16be39b3e1b105751435eebfc53beec2a
 
 int MAX_ARGS_SIZE = 1000;
 char* CURRENT_LOCATION = ".";
@@ -34,9 +42,10 @@ int my_cd(char *folder);
 //int set(char* var, char* value);
 int print(char* var);
 int run(char* script);
+int my_ls();
 int badcommandFileDoesNotExist();
 int echo(char *arguments[]);
-int set(char *arguments[], int argumentSize);
+int my_ls();
 
 // Interpret commands and their arguments
 int interpreter(char* command_args[], int args_size) {
@@ -54,24 +63,20 @@ int interpreter(char* command_args[], int args_size) {
         //help
         if (args_size != 1) return badcommand();
         return help();
-    
     } else if (strcmp(command_args[0], "quit") == 0) {
         //quit
         if (args_size != 1) return badcommand();
         return quit();
-
     } else if (strcmp(command_args[0], "my_touch") == 0) {
         if (args_size != 2) return badcommand();
         return my_touch(command_args[1]);
-
     } else if (strcmp(command_args[0], "set") == 0) {
         //set
         if (args_size < 3) return badcommand();
             if (args_size > 7) {
             printf("Bad command: Too many tokens\n");
             return 3;
-	
-        };
+        }
         return set(command_args, args_size);
     } else if (strcmp(command_args[0], "print") == 0) {
         if (args_size != 2) return badcommand();
@@ -80,7 +85,6 @@ int interpreter(char* command_args[], int args_size) {
     } else if (strcmp(command_args[0], "run") == 0) {
         if (args_size != 2) return badcommand();
         return run(command_args[1]);
-
     } else if (strcmp(command_args[0], "echo") == 0){
         if (args_size != 2) return badcommand();	// Check if first character of string is a '$' sign
         return echo(command_args);
@@ -91,8 +95,31 @@ int interpreter(char* command_args[], int args_size) {
     else if (strcmp(command_args[0], "my_cd") == 0) {
         if (args_size != 2) return badcommand();
         return my_cd(command_args[1]);
-
+    } else if (strcmp(command_args[0], "my_ls") == 0) {
+        if (args_size != 1) return badcommand();
+        return my_ls();
     } else return badcommand();
+}
+
+int my_ls() {
+    struct dirent **namelist;
+    int n, i; 
+
+    n = scandir(".", &namelist, my_ls_filter, my_ls_sort);
+    if (n < 0) {
+        printf("scandir error");
+        exit(EXIT_FAILURE);
+    }
+
+    i = 0;
+    while(i < n) {
+        printf("%s\n", namelist[i] -> d_name);
+        free(namelist[i]); 
+        i++;
+    }
+    free(namelist);
+
+    return 0;
 }
 
 int help() {
