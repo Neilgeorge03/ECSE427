@@ -130,10 +130,8 @@ int my_cd(char *folder){
             return 3;
         }
     }
-    printf("%s", getcwd(folder, sizeof(folder)));
     if (chdir(folder) == 0) return 0;
     printf("Bad command: my_cd\n");
-    printf("%s", getcwd(folder, sizeof(folder)));
     return 3;
 }
 int echo(char *arguments[]){
