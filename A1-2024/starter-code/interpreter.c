@@ -1,24 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-<<<<<<< HEAD
 #include <string.h>
 #include <ctype.h> 
 #include "shellmemory.h"
 #include "shell.h"
 #include <dirent.h>
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <ctype.h>
-
-
-=======
-#include <string.h> 
-#include <dirent.h>
 #include "shellmemory.h"
 #include "shell.h"
 #include "helpers.h"
->>>>>>> 9f24d9a16be39b3e1b105751435eebfc53beec2a
 
 int MAX_ARGS_SIZE = 1000;
 char* CURRENT_LOCATION = ".";
@@ -46,6 +37,7 @@ int my_ls();
 int badcommandFileDoesNotExist();
 int echo(char *arguments[]);
 int my_ls();
+int set(char* arguments[], int argumentSize);
 
 // Interpret commands and their arguments
 int interpreter(char* command_args[], int args_size) {
@@ -161,11 +153,11 @@ int quit() {
 }
 int my_mkdir(char *folder){
     if (folder[0] == '$') {
-        folder = strtok(folder, "$");
-    }
-    if (strcmp(folder, "Variable does not exist") == 0){
-        printf("Bad command: my_mkdir\n");
-        return 3;
+        folder = mem_get_value(strtok(folder, "$"));
+        if (strcmp(folder, "Variable does not exist") == 0){
+            printf("Bad command: my_mkdir\n");
+            return 3;
+        }
     }
     for (int i = 0; i < strlen(folder); i++) {
         if (!isalnum(folder[i])) {
@@ -174,7 +166,7 @@ int my_mkdir(char *folder){
         }
     }
 
-    if (mkdir(folder, 777) == 0) return 0;
+    if (mkdir(folder, 0755) == 0) return 0;
     printf("Bad command: my_mkdir\n");
     return 3;
 
