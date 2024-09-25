@@ -33,7 +33,7 @@ int print(char* var);
 int run(char* script);
 int my_ls();
 int badcommandFileDoesNotExist();
-int echo(char *arguments[]);
+int echo(char *word);
 int my_ls();
 int set(char* arguments[], int argumentSize);
 
@@ -80,7 +80,7 @@ int interpreter(char* command_args[], int args_size) {
 
     } else if (strcmp(command_args[0], "echo") == 0){
         if (args_size != 2) return badcommand();	// Check if first character of string is a '$' sign
-        return echo(command_args);
+        return echo(command_args[1]);
 
     } else if (strcmp(command_args[0], "my_mkdir") == 0) {
         if (args_size != 2) return badcommand();
@@ -161,7 +161,11 @@ int quit() {
 
 int my_mkdir(char *folder){
     if (folder[0] == '$') {
-        folder = mem_get_value(strtok(folder, "$"));
+        for (int i = 0;folder[i] != '\0'; i++) {
+            folder[i] = folder[i + 1];
+        }
+
+        folder = mem_get_value(folder);
         if (strcmp(folder, "Variable does not exist") == 0){
             return 3;
         }
@@ -191,13 +195,16 @@ int my_cd(char *folder){
     return 9;
 }
 
-int echo(char *arguments[]){
-    if (arguments[1][0] != '$'){
-        printf("%s\n", arguments[1]);
+int echo(char *word){
+    if (word[0] != '$'){
+        printf("%s\n", word);
         return 0;
     }
 
-    char* ans = mem_get_value(strtok(arguments[1], "$"));
+    for (int i = 0;word[i] != '\0'; i++) {
+        word[i] = word[i + 1];
+    }
+    char* ans = mem_get_value(word);
 
     if (strcmp(ans, "Variable does not exist") == 0){
         printf("\n");
