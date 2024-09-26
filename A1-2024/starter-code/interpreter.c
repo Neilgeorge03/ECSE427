@@ -33,7 +33,7 @@ int print(char* var);
 int run(char* script);
 int my_ls();
 int badcommandFileDoesNotExist();
-int echo(char *arguments[]);
+int echo(char *word);
 int my_ls();
 int set(char* arguments[], int argumentSize);
 
@@ -80,7 +80,7 @@ int interpreter(char* command_args[], int args_size) {
 
     } else if (strcmp(command_args[0], "echo") == 0){
         if (args_size != 2) return badcommand();	// Check if first character of string is a '$' sign
-        return echo(command_args);
+        return echo(command_args[1]);
 
     } else if (strcmp(command_args[0], "my_mkdir") == 0) {
         if (args_size != 2) return badcommand();
@@ -93,6 +93,11 @@ int interpreter(char* command_args[], int args_size) {
     } else if (strcmp(command_args[0], "my_ls") == 0) {
         if (args_size != 1) return badcommand();
         return my_ls();
+    
+    // If none of the valid commands are executed and more than 1 token -> Too many tokens
+    } else if (args_size > 1) {
+        printf("Bad command: Too many tokens\n");
+        return 3;
 
     } else return badcommand();
 }
@@ -134,7 +139,10 @@ run SCRIPT.TXT		Executes the file SCRIPT.TXT\n ";
 int my_touch(char *filename) {
 
     // input validation
-    if (check_alphanum(filename) != 0) return 3;
+    if (check_alphanum(filename) != 0) {
+        printf("Bad command: my_touch\n");
+        return 3;
+    }
 
     FILE *pfile = fopen(filename, "w");
     if (pfile == NULL) {
@@ -153,15 +161,21 @@ int quit() {
 
 int my_mkdir(char *folder){
     if (folder[0] == '$') {
-        folder = mem_get_value(strtok(folder, "$"));
+        for (int i = 0;folder[i] != '\0'; i++) {
+            folder[i] = folder[i + 1];
+        }
+
+        folder = mem_get_value(folder);
         if (strcmp(folder, "Variable does not exist") == 0){
-            printf("Bad command: my_mkdir\n");
             return 3;
         }
     }
 
-    // input validation 
-    if (check_alphanum(folder) != 0) return 3;
+    // input validation
+    if (check_alphanum(folder) != 0) {
+        printf("Bad command: my_mkdir\n");
+        return 3;
+    }
 
     if (mkdir(folder, 0755) == 0) return 0;
     printf("Bad command: my_mkdir\n");
@@ -171,20 +185,26 @@ int my_mkdir(char *folder){
 
 int my_cd(char *folder){
     // input validation 
-    if (check_alphanum(folder) != 0) return 3;
+    if (check_alphanum(folder) != 0) {
+        printf("Bad command: my_mkdir\n");
+        return 3;
+    }
 
     if (chdir(folder) == 0) return 0;
     printf("Bad command: my_cd\n");
-    return -1;
+    return 9;
 }
 
-int echo(char *arguments[]){
-    if (arguments[1][0] != '$'){
-        printf("%s\n", arguments[1]);
+int echo(char *word){
+    if (word[0] != '$'){
+        printf("%s\n", word);
         return 0;
     }
 
-    char* ans = mem_get_value(strtok(arguments[1], "$"));
+    for (int i = 0;word[i] != '\0'; i++) {
+        word[i] = word[i + 1];
+    }
+    char* ans = mem_get_value(word);
 
     if (strcmp(ans, "Variable does not exist") == 0){
         printf("\n");

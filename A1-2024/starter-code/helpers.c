@@ -54,10 +54,7 @@ int my_ls_sort(const struct dirent **namelist_one, const struct dirent **namelis
 
 int check_alphanum(char *name) {
     for (int i = 0; i < strlen(name); i++) {
-        if(!isalnum(name[i])) {
-            printf("Name must strictly be alphanumeric.\n");
-            return 3;
-        }
-    }
+        if(!isalnum(name[i])) return 3;
+    } 
     return 0;
 }

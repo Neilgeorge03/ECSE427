@@ -7,7 +7,7 @@
 #include "shellmemory.h"
 
 int parseInput(char ui[]);
-int isInteractiveMode();
+int is_interactive_mode();
 
 // Start of everything
 int main(int argc, char *argv[]) {
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
     //init shell memory
     mem_init();
     while (1) {
-        if (isInteractiveMode()) {
+        if (is_interactive_mode()) {
             printf("%c ", prompt);
         }
 
@@ -35,15 +35,18 @@ int main(int argc, char *argv[]) {
             exit(0);
         }
 
-        errorCode = parseInput(userInput);
-        if (errorCode == -1) exit(99);	// ignore all other errors
+        for (char *token = strtok(userInput,";"); token != NULL; token = strtok(NULL, ";")){
+            errorCode = parseInput(token);
+            if (errorCode == -1) exit(99);
+        }
+
         memset(userInput, 0, sizeof(userInput));
     }
 
     return 0;
 }
 
-int isInteractiveMode() {
+int is_interactive_mode() {
     int file_desc_no = isatty(STDIN_FILENO);
     if (file_desc_no != 0 && file_desc_no != 1) {
         printf("Batch mode unavailable, ERRNO: %d\n", file_desc_no);
