@@ -167,7 +167,8 @@ int my_mkdir(char *folder){
 
         folder = mem_get_value(folder);
         if (strcmp(folder, "Variable does not exist") == 0){
-            return 3;
+        	printf("Bad command: my_mkdir\n");
+		return 3;
         }
     }
 
@@ -186,7 +187,7 @@ int my_mkdir(char *folder){
 int my_cd(char *folder){
     // input validation 
     if (check_alphanum(folder) != 0) {
-        printf("Bad command: my_mkdir\n");
+        printf("Bad command: my_cd\n");
         return 3;
     }
 
