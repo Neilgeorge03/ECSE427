@@ -3,6 +3,8 @@
 #include <dirent.h>
 #include <string.h>
 
+int UNIQUE_PID = 0;
+
 int my_ls_filter(const struct dirent *namelist) {
     const char *name = namelist->d_name; 
     // return 0 => exclude 
@@ -57,4 +59,8 @@ int check_alphanum(char *name) {
         if(!isalnum(name[i])) return 3;
     } 
     return 0;
+}
+
+int generate_pid(){
+    return UNIQUE_PID++;
 }

@@ -28,14 +28,13 @@ int quit();
 int my_touch(char *filename);
 int my_mkdir(char *folder);
 int my_cd(char *folder);
-int set(char* arguments[], int argumentSize);
-int print(char* var);
-int run(char* script);
+int print(char *var);
+int run(char *script);
 int my_ls();
 int badcommandFileDoesNotExist();
 int echo(char *word);
 int my_ls();
-int set(char* arguments[], int argumentSize);
+int set(char *arguments[], int argumentSize);
 
 // Interpret commands and their arguments
 int interpreter(char* command_args[], int args_size) {
@@ -215,18 +214,7 @@ int echo(char *word){
     return 0;
 }
 
-
 int set(char* arguments[], int argumentSize) {
-
-    /* PART 1: You might want to write code that looks something like this.
-         You should look up documentation for strcpy and strcat.
-
-    char buffer[MAX_USER_INPUT];
-    strcpy(buffer, var);
-    strcat(buffer, link);
-    strcat(buffer, value);
-    */
-
     char ans[100];
     strcpy(ans, arguments[2]);
     for (int i = 3; i < argumentSize; i++){
@@ -245,26 +233,20 @@ int print(char *var) {
 }
 
 int run(char *script) {
-    int errCode = 0;
-    char line[MAX_USER_INPUT];
-    FILE *p = fopen(script, "rt");  // the program is in a file
-
-    if (p == NULL) {
+    FILE *fp = fopen(script, "rt");
+    if (fp == NULL) {
         return badcommandFileDoesNotExist();
     }
 
-    fgets(line, MAX_USER_INPUT-1, p);
-    while (1) {
-        errCode = parseInput(line);	// which calls interpreter()
-        memset(line, 0, sizeof(line));
+    int pid = generate_pid();
+    int number_of_lines = load_script_in_memory(fp, pid);
 
-        if (feof(p)) {
-            break;
-        }
-        fgets(line, MAX_USER_INPUT-1, p);
-    }
+    char key[15];
+    memset(key, 0, sizeof(key));
+    sprintf(key, "%s%d", PID_PLACEHOLDER, pid);
 
-    fclose(p);
+    char *head_of_script = mem_get_value(key);
+    //struct PCB pcb = create_pcb(pid, number_of_lines, 0); 
 
-    return errCode;
+    fclose(fp);
 }

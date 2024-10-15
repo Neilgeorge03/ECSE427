@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "shellmemory.h"
+#include "shell.h"
 
 struct memory_struct {
     char *var;
@@ -9,6 +10,7 @@ struct memory_struct {
 };
 
 struct memory_struct shellmemory[MEM_SIZE];
+
 
 // Helper functions
 int match(char *model, char *var) {
@@ -64,4 +66,24 @@ char *mem_get_value(char *var_in) {
         } 
     }
     return "Variable does not exist";
+}
+
+int load_script_in_memory(FILE *fp, int pid) {
+    char buffer[MAX_SCRIPT_SIZE];
+    char line[MAX_USER_INPUT];
+    char key[15];
+    int current_line_num = 0;
+
+    memset(buffer, 0, sizeof(buffer));
+    while(fgets(line, MAX_USER_INPUT - 1, fp)) {
+        strcat(buffer, line);
+        memset(line, 0, sizeof(line));
+        current_line_num++;
+
+        if(feof(fp)) break;
+    }
+    sprintf(key, "%s%d", PID_PLACEHOLDER, pid);
+    mem_set_value(key, buffer);
+    return current_line_num;
+
 }
