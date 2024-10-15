@@ -7,21 +7,11 @@
 #include "shellmemory.h"
 #include "shell.h"
 #include "helpers.h"
+#include "pcb.h"
 
 int MAX_ARGS_SIZE = 1000;
 char* CURRENT_LOCATION = ".";
 struct stat s;
-
-int badcommand(){
-    printf("Unknown Command\n");
-    return 1;
-}
-
-// For run command only
-int badcommandFileDoesNotExist(){
-    printf("Bad command: File not found\n");
-    return 3;
-}
 
 int help();
 int quit();
@@ -35,6 +25,17 @@ int badcommandFileDoesNotExist();
 int echo(char *word);
 int my_ls();
 int set(char *arguments[], int argumentSize);
+
+int badcommand(){
+    printf("Unknown Command\n");
+    return 1;
+}
+
+// For run command only
+int badcommandFileDoesNotExist(){
+    printf("Bad command: File not found\n");
+    return 3;
+}
 
 // Interpret commands and their arguments
 int interpreter(char* command_args[], int args_size) {
@@ -246,7 +247,7 @@ int run(char *script) {
     sprintf(key, "%s%d", PID_PLACEHOLDER, pid);
 
     char *head_of_script = mem_get_value(key);
-    //struct PCB pcb = create_pcb(pid, number_of_lines, 0); 
+    struct PCB pcb = create_pcb(pid, head_of_script, number_of_lines, 0);
 
     fclose(fp);
 }
