@@ -8,6 +8,7 @@
 #include "shell.h"
 #include "helpers.h"
 #include "pcb.h"
+#include "scheduler.h"
 
 int MAX_ARGS_SIZE = 1000;
 char* CURRENT_LOCATION = ".";
@@ -241,6 +242,7 @@ int run(char *script) {
 
     int pid = generate_pid();
     int number_of_lines = load_script_in_memory(fp, pid);
+    fclose(fp);
 
     char key[15];
     memset(key, 0, sizeof(key));
@@ -249,5 +251,8 @@ int run(char *script) {
     char *head_of_script = mem_get_value(key);
     struct PCB pcb = create_pcb(pid, head_of_script, number_of_lines, 0);
 
-    fclose(fp);
+    // use scheduler to execute
+    execute_FCFS(); 
+
+    return 0;
 }

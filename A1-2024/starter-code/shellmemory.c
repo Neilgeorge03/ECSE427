@@ -85,5 +85,4 @@ int load_script_in_memory(FILE *fp, int pid) {
     sprintf(key, "%s%d", PID_PLACEHOLDER, pid);
     mem_set_value(key, buffer);
     return current_line_num;
-
 }
