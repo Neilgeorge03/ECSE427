@@ -16,12 +16,13 @@ int execute_FCFS() {
 
     do {
         copy_pcb = ready_queue.head;
-        char *line = strtok(copy_pcb->start, "\n;");
+        // When doing "load_script_in_memory", each line ends with ';'. Thus
+        // easy to find when each line end using this.
+        char *line = strtok(copy_pcb->start, ";");
         while(line != NULL) {
-            //printf("%s\n", line);
             // try blankline.txt and it fails. problem in blanklines.
             errCode = parseInput(line);
-            line = strtok(NULL, "\n;");
+            line = strtok(NULL, ";");
         } 
         
         ready_queue.head = copy_pcb->next;

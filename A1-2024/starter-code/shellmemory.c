@@ -76,6 +76,9 @@ int load_script_in_memory(FILE *fp, int pid) {
 
     memset(buffer, 0, sizeof(buffer));
     while(fgets(line, MAX_USER_INPUT - 1, fp)) {
+        // Since strtok removes the \n, we instead use ';' as delimit for each expression
+        // => Helps distinguish every single line.
+        strcat(line, ";");
         strcat(buffer, line);
         memset(line, 0, sizeof(line));
         current_line_num++;
