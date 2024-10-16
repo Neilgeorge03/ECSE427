@@ -12,6 +12,12 @@ struct PCB create_pcb(int pid, int number_of_lines) {
     pcb.pc = 0;
     pcb.next = NULL;
 
+    enqueue(pcb);
+
+    return pcb;
+}
+
+void enqueue(struct PCB pcb) {
     if (ready_queue.head == NULL) {
         ready_queue.head = &pcb;
     } else {
@@ -22,6 +28,11 @@ struct PCB create_pcb(int pid, int number_of_lines) {
         }
         copy_head->next = &pcb;
     }
+}
 
-    return pcb;
+struct PCB *dequeue() {
+    struct PCB *copy_pcb;
+    copy_pcb = ready_queue.head;
+    ready_queue.head = copy_pcb->next;
+    return copy_pcb;
 }

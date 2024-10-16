@@ -35,6 +35,7 @@ int main(int argc, char *argv[]) {
             exit(0);
         }
 
+        // strcpy(userInput, "run ../test-cases/run.txt");
         for (char *token = strtok(userInput,";"); token != NULL; token = strtok(NULL, ";")){
             errorCode = parseInput(token);
             if (errorCode == -1) exit(99);

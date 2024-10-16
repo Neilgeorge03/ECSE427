@@ -244,7 +244,7 @@ int run(char *script) {
     int number_of_lines = load_script_in_memory(fp, pid);
     fclose(fp);
 
-    char key[15];
+    char key[100];
     memset(key, 0, sizeof(key));
     sprintf(key, "%d_%d", pid, 0);
 

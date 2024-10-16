@@ -19,5 +19,7 @@ struct READY_QUEUE {
 struct READY_QUEUE ready_queue;
 
 struct PCB create_pcb(int pid, int number_of_lines);
+void enqueue(struct PCB pcb);
+struct PCB *dequeue();
 
 #endif
