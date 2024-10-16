@@ -2,6 +2,10 @@
 #include <ctype.h>
 #include <dirent.h>
 #include <string.h>
+#include "shellmemory.h"
+#include "shell.h"
+
+int UNIQUE_PID = 0;
 
 int my_ls_filter(const struct dirent *namelist) {
     const char *name = namelist->d_name; 
@@ -57,4 +61,19 @@ int check_alphanum(char *name) {
         if(!isalnum(name[i])) return 3;
     } 
     return 0;
+}
+
+int generate_pid(){
+    return UNIQUE_PID++;
+}
+
+int execute_instruction(char *key) {
+    int errCode = 0;
+    char *instruction = mem_get_value(key);
+    char *tok;
+    for (tok = strtok(instruction, ";"); tok != NULL; tok = strtok(NULL, ";")) {
+        errCode = parseInput(tok);
+        if (errCode == -1) return 99;
+    }
+    return 0; 
 }
