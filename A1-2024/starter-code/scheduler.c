@@ -20,13 +20,11 @@ int execute_FCFS() {
         // easy to find when each line end using this.
         char *line = strtok(copy_pcb->start, ";");
         while(line != NULL) {
-            // try blankline.txt and it fails. problem in blanklines.
             errCode = parseInput(line);
             line = strtok(NULL, ";");
         } 
         
         ready_queue.head = copy_pcb->next;
-        // erase from shell memory
     } while(ready_queue.head != NULL); 
     return errCode;
 }

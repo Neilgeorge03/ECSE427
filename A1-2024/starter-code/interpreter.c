@@ -250,10 +250,14 @@ int run(char *script) {
 
     char *head_of_script = mem_get_value(key);
     struct PCB pcb = create_pcb(pid, head_of_script, number_of_lines, 0);
-    //printf("value inside pcb is:\n %s", pcb.start);
 
-    // use scheduler to execute
     execute_FCFS(); 
+
+    // clear memory
+    if (clear_mem(key) != 0){
+        perror("Unable to clear memory.");
+        return 3;
+    };
 
     return 0;
 }

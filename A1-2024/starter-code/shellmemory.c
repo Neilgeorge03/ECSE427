@@ -78,7 +78,9 @@ int load_script_in_memory(FILE *fp, int pid) {
     while(fgets(line, MAX_USER_INPUT - 1, fp)) {
         // Since strtok removes the \n, we instead use ';' as delimit for each expression
         // => Helps distinguish every single line.
-        strcat(line, ";");
+        if (line[strlen(line) - 1] != ';') {
+            strcat(line, ";");
+        }
         strcat(buffer, line);
         memset(line, 0, sizeof(line));
         current_line_num++;
@@ -88,4 +90,16 @@ int load_script_in_memory(FILE *fp, int pid) {
     sprintf(key, "%s%d", PID_PLACEHOLDER, pid);
     mem_set_value(key, buffer);
     return current_line_num;
+}
+
+// If successfully cleared => return 0. Otherwise return 1.
+int clear_mem(char *key) {
+    for (int i = 0; i < MEM_SIZE; i++){
+        if(strcmp(shellmemory[i].var, key) == 0) {
+            shellmemory[i].var = "none";
+            shellmemory[i].value = "none";
+            return 0; 
+        }
+    }
+    return 1;
 }
