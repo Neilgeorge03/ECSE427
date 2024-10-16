@@ -2,13 +2,14 @@
 #include <stdlib.h>
 #include "pcb.h"
 
-struct PCB create_pcb(int pid, char *start, int number_of_lines, int current_line) {
+// this method creates the process control block for a script beginning with key
+// {pid}_0 set by the method set_value in shellmemory.h.
+struct PCB create_pcb(int pid, int number_of_lines) {
     struct PCB pcb;
 
     pcb.pid = pid;
-    pcb.start = start;
     pcb.number_of_lines = number_of_lines;
-    pcb.pc = current_line;
+    pcb.pc = 0;
     pcb.next = NULL;
 
     if (ready_queue.head == NULL) {
@@ -24,4 +25,3 @@ struct PCB create_pcb(int pid, char *start, int number_of_lines, int current_lin
 
     return pcb;
 }
-

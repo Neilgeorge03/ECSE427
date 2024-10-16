@@ -246,15 +246,13 @@ int run(char *script) {
 
     char key[15];
     memset(key, 0, sizeof(key));
-    sprintf(key, "%s%d", PID_PLACEHOLDER, pid);
+    sprintf(key, "%d_%d", pid, 0);
 
-    char *head_of_script = mem_get_value(key);
-    struct PCB pcb = create_pcb(pid, head_of_script, number_of_lines, 0);
+    struct PCB pcb = create_pcb(pid, number_of_lines);
 
     execute_FCFS(); 
 
-    // clear memory
-    if (clear_mem(key) != 0){
+    if (clear_mem(pcb.pid, pcb.number_of_lines) != 0){
         perror("Unable to clear memory.");
         return 3;
     };

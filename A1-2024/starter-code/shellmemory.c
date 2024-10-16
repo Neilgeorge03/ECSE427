@@ -69,36 +69,37 @@ char *mem_get_value(char *var_in) {
 }
 
 int load_script_in_memory(FILE *fp, int pid) {
-    char buffer[MAX_SCRIPT_SIZE];
     char line[MAX_USER_INPUT];
     char key[15];
     int current_line_num = 0;
+    memset(line, 0, MAX_USER_INPUT);
 
-    memset(buffer, 0, sizeof(buffer));
     while(fgets(line, MAX_USER_INPUT - 1, fp)) {
-        // Since strtok removes the \n, we instead use ';' as delimit for each expression
-        // => Helps distinguish every single line.
-        if (line[strlen(line) - 1] != ';') {
-            strcat(line, ";");
-        }
-        strcat(buffer, line);
-        memset(line, 0, sizeof(line));
+        sprintf(key, "%d_%d", pid, current_line_num);
+        mem_set_value(key, line);
+
+        memset(line, 0, MAX_USER_INPUT);
+        memset(key, 0, sizeof(key));
         current_line_num++;
 
         if(feof(fp)) break;
     }
-    sprintf(key, "%s%d", PID_PLACEHOLDER, pid);
-    mem_set_value(key, buffer);
     return current_line_num;
 }
 
 // If successfully cleared => return 0. Otherwise return 1.
-int clear_mem(char *key) {
-    for (int i = 0; i < MEM_SIZE; i++){
-        if(strcmp(shellmemory[i].var, key) == 0) {
-            shellmemory[i].var = "none";
-            shellmemory[i].value = "none";
-            return 0; 
+int clear_mem(int pid, int length) {
+    char key[15];
+    // to get the first occurence
+    sprintf(key, "%d_%d", pid, 0);
+
+    for (int i = 0; i < MEM_SIZE; i++) {
+        if (strcmp(shellmemory[i].var, key) == 0) {
+            for (int j = 0; j < length; j++) {
+                shellmemory[i + j].var = "none";
+                shellmemory[i + j].value = "none";
+            }
+            return 0;
         }
     }
     return 1;
