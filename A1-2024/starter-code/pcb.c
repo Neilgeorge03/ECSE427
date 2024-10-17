@@ -8,6 +8,7 @@ struct READY_QUEUE ready_queue = {NULL};
 
 // this method creates the process control block for a script beginning with key
 // {pid}_0 set by the method set_value in shellmemory.h.
+// dynamically allocated pcb -> needs to be freed
 struct PCB *instantiate_pcb(int pid, int number_of_lines) {
     struct PCB *pcb = (struct PCB*)malloc(sizeof(struct PCB));
     if(!pcb) {
@@ -28,10 +29,8 @@ struct PCB *instantiate_pcb(int pid, int number_of_lines) {
 struct PCB *create_pcb(FILE *fp) {
     int pid = generate_pid();
     int number_of_lines = load_script_in_memory(fp, pid);
-    fclose(fp);
     return instantiate_pcb(pid, number_of_lines);
 }
-
 
 void enqueue(struct PCB *pcb) {
     if (ready_queue.head == NULL) {
@@ -56,5 +55,9 @@ struct PCB *dequeue() {
 }
 
 void free_pcb(struct PCB *pcb) {
+    if (clear_mem(pcb->pid, pcb->number_of_lines) != 0){
+        perror("Unable to clear memory.");
+        return;
+    };
     free(pcb);
 }

@@ -25,6 +25,7 @@ int my_ls();
 int badcommandFileDoesNotExist();
 int echo(char *word);
 int my_ls();
+int exec(char *arguments[], int argumentSize);
 int set(char *arguments[], int argumentSize);
 
 int badcommand(){
@@ -94,6 +95,10 @@ int interpreter(char* command_args[], int args_size) {
     } else if (strcmp(command_args[0], "my_ls") == 0) {
         if (args_size != 1) return badcommand();
         return my_ls();
+    
+    } else if (strcmp(command_args[0], "exec") == 0) {
+        if (args_size > 5) return badcommand();
+        return exec(command_args, args_size);
     
     // If none of the valid commands are executed and more than 1 token -> Too many tokens
     } else if (args_size > 1) {
@@ -234,6 +239,29 @@ int print(char *var) {
     return 0;
 }
 
+int exec(char *arguments[], int argumentSize) {
+    char *policy = arguments[argumentSize - 1];
+    if (is_proper_policy(policy) != 0) {
+        printf("Not a proper policy.\n");
+        return badcommand();
+    }
+
+    if (strcmp(policy, "FCFS") == 0) {
+        for (int i = 1; i < argumentSize - 1; i++) {
+            FILE *fp = fopen(arguments[i], "rt");
+            if (fp == NULL) {
+                printf("Failed to open file.\n");
+                return 3;
+            }
+            create_pcb(fp);
+            fclose(fp);
+        }
+        execute_FCFS();
+    }
+    return 0;
+}
+
+
 int run(char *script) {
     FILE *fp = fopen(script, "rt");
     if (fp == NULL) {
@@ -242,14 +270,9 @@ int run(char *script) {
     }
 
     struct PCB *pcb = create_pcb(fp); 
+    fclose(fp);
 
     execute_FCFS(); 
-    if (clear_mem(pcb->pid, pcb->number_of_lines) != 0){
-        perror("Unable to clear memory.");
-        return 3;
-    };
-
-    free_pcb(pcb);
 
     return 0;
 }

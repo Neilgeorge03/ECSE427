@@ -4,6 +4,7 @@
 #include <string.h>
 #include "shellmemory.h"
 #include "shell.h"
+#include "scheduler.h"
 
 int UNIQUE_PID = 0;
 
@@ -76,4 +77,14 @@ int execute_instruction(char *key) {
         if (errCode == -1) return 99;
     }
     return 0; 
+}
+
+
+int is_proper_policy(char *policy) {
+    for(int i = 0; i < 4; i++) {
+        if(strcasecmp(policy, ExecutionPolicy[i]) == 0) {
+            return 0;
+        }
+    }
+    return 1;
 }
