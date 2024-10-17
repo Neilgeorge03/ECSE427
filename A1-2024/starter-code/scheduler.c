@@ -6,6 +6,13 @@
 #include "shellmemory.h"
 #include "helpers.h"
 
+const char *ExecutionPolicy[] = {
+    "FCFS",
+    "SJF",
+    "RR",
+    "AGING"
+};
+
 int execute_FCFS() {
     int errCode;
     struct PCB *copy_pcb;
@@ -21,6 +28,8 @@ int execute_FCFS() {
             errCode = execute_instruction(key); 
             copy_pcb->pc++;
         }
+        // important to free to remove from shell and computer memory
+        free_pcb(copy_pcb);
     } while(ready_queue.head != NULL); 
     return errCode;
 }
