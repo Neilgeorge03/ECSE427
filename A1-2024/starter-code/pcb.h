@@ -16,10 +16,12 @@ struct READY_QUEUE {
     struct PCB *head;
 };
 
-struct READY_QUEUE ready_queue;
+extern struct READY_QUEUE ready_queue;
 
-struct PCB create_pcb(int pid, int number_of_lines);
-void enqueue(struct PCB pcb);
+struct PCB *instantiate_pcb(int pid, int number_of_lines);
+void enqueue(struct PCB *pcb);
+struct PCB *create_pcb(FILE *fp);
 struct PCB *dequeue();
+void free_pcb(struct PCB *pcb);
 
 #endif

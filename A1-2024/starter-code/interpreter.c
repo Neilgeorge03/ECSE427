@@ -237,25 +237,19 @@ int print(char *var) {
 int run(char *script) {
     FILE *fp = fopen(script, "rt");
     if (fp == NULL) {
-        return badcommandFileDoesNotExist();
+        printf("Failed to open file.\n");
+        return 3;
     }
 
-    int pid = generate_pid();
-    int number_of_lines = load_script_in_memory(fp, pid);
-    fclose(fp);
-
-    char key[100];
-    memset(key, 0, sizeof(key));
-    sprintf(key, "%d_%d", pid, 0);
-
-    struct PCB pcb = create_pcb(pid, number_of_lines);
+    struct PCB *pcb = create_pcb(fp); 
 
     execute_FCFS(); 
-
-    if (clear_mem(pcb.pid, pcb.number_of_lines) != 0){
+    if (clear_mem(pcb->pid, pcb->number_of_lines) != 0){
         perror("Unable to clear memory.");
         return 3;
     };
+
+    free_pcb(pcb);
 
     return 0;
 }
