@@ -20,7 +20,7 @@ struct PCB *instantiate_pcb(int pid, int number_of_lines) {
     pcb->number_of_lines = number_of_lines;
     pcb->pc = 0;
     pcb->next = NULL;
-
+    pcb->aging_length = number_of_lines;
     enqueue(pcb);
 
     return pcb;
@@ -60,4 +60,38 @@ void free_pcb(struct PCB *pcb) {
         return;
     };
     free(pcb);
+}
+
+void selectionSortQueue() {
+    if (ready_queue.head == NULL) return; // We don't care if the queue is null
+
+    struct PCB *current, *next, *min, *prevMin, *temp;
+
+    current = ready_queue.head;
+    while (current != NULL){
+        min = current; // inital min is the first element in the queue
+        next = current -> next;
+        prevMin = current;
+        while (next != NULL) {
+            if (next->pid < min->pid) {
+                min = next;
+                prevMin = current;
+            }
+            next = next -> next;
+        }
+
+        if (min != current){
+
+            temp = current->next;
+            current->next = min->next;
+            min->next = temp;
+
+            if (prevMin != current) {
+                prevMin->next = min;
+            } else {
+                ready_queue.head=min;
+            }
+       }
+        current = current->next;
+    }
 }
