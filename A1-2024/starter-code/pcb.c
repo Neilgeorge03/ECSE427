@@ -33,6 +33,8 @@ struct PCB *create_pcb(FILE *fp) {
 }
 
 void enqueue(struct PCB *pcb) {
+    // make sure added job is in the tail
+    pcb->next = NULL;
     if (ready_queue.head == NULL) {
         ready_queue.head = pcb;
     } else {
