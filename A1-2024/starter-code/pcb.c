@@ -65,24 +65,22 @@ void free_pcb(struct PCB *pcb) {
 void selectionSortQueue() {
     if (ready_queue.head == NULL) return; // We don't care if the queue is null
 
-    struct PCB *current, *next, *min, *prevMin, *temp;
+    struct PCB *current;
 
     current = ready_queue.head;
     while (current != NULL){
-        min = current; // inital min is the first element in the queue
-        next = current -> next;
-        prevMin = current;
+        struct PCB *min = current; // inital min is the first element in the queue
+        struct PCB *next = current -> next;
+        struct PCB *prevMin = current;
         while (next != NULL) {
-            if (next->pid < min->pid) {
+            if (next->number_of_lines < min->number_of_lines) {
                 min = next;
-                prevMin = current;
             }
             next = next -> next;
         }
 
-        if (min != current){
-
-            temp = current->next;
+        if (min != current){ // switching the nodes if it's not in order
+            struct PCB *temp = current->next;
             current->next = min->next;
             min->next = temp;
 
@@ -91,7 +89,16 @@ void selectionSortQueue() {
             } else {
                 ready_queue.head=min;
             }
+            current = ready_queue.head;
        }
-        current = current->next;
+
+        else {
+            current = current->next;
+        }
+    }
+    current = ready_queue.head;
+    for (int i = 0; i < 3; i++){
+        printf("%d: ", current->pid);
+        printf("%d\n", current->next->pid);
     }
 }
