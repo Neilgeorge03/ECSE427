@@ -11,7 +11,7 @@ struct PCB {
     // Next PCB
     struct PCB *next;
     // 1.2.4 Aging SJF job
-    int job_length_score;
+    int aging_length;
 };
 
 struct READY_QUEUE {
