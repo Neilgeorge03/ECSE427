@@ -65,22 +65,36 @@ void free_pcb(struct PCB *pcb) {
 void selectionSortQueue() {
     if (ready_queue.head == NULL) return; // We don't care if the queue is null
 
+<<<<<<< HEAD
     struct PCB *current, *min, *next, *prevMin, *prevNext, *prevCurrent;
+=======
+    struct PCB *current, *next, *min, *prevMin, *temp;
+>>>>>>> parent of b951e6e (Sorting(?))
 
     current = ready_queue.head;
     prevCurrent = NULL;
     while (current != NULL){
         min = current; // inital min is the first element in the queue
+<<<<<<< HEAD
         next = min -> next;
         prevNext = min;
+=======
+        next = current -> next;
+        prevMin = current;
+>>>>>>> parent of b951e6e (Sorting(?))
         while (next != NULL) {
-            if (next->number_of_lines < min->number_of_lines) {
+            if (next->pid < min->pid) {
                 min = next;
+<<<<<<< HEAD
                 prevMin = prevNext;
+=======
+                prevMin = current;
+>>>>>>> parent of b951e6e (Sorting(?))
             }
             prevNext = next;
             next = next -> next;
         }
+<<<<<<< HEAD
         if (min != current) { // switching the nodes if it's not in order
             printf("min pid: %d\n", min->pid);
             printf("current: %d\n", current->pid);
@@ -102,6 +116,21 @@ void selectionSortQueue() {
     for (int i = 0; i < 2; i++){
         printf("%d: ", current->pid);
         printf("%d\n", current->next->pid);
+=======
+
+        if (min != current){
+
+            temp = current->next;
+            current->next = min->next;
+            min->next = temp;
+
+            if (prevMin != current) {
+                prevMin->next = min;
+            } else {
+                ready_queue.head=min;
+            }
+       }
+>>>>>>> parent of b951e6e (Sorting(?))
         current = current->next;
     }
 }
