@@ -20,7 +20,7 @@ struct PCB *instantiate_pcb(int pid, int number_of_lines) {
     pcb->number_of_lines = number_of_lines;
     pcb->pc = 0;
     pcb->next = NULL;
-    pcb->aging_length = number_of_lines;
+    pcb->job_length_score = number_of_lines;
     enqueue(pcb);
 
     return pcb;
@@ -65,40 +65,43 @@ void free_pcb(struct PCB *pcb) {
 void selectionSortQueue() {
     if (ready_queue.head == NULL) return; // We don't care if the queue is null
 
-    struct PCB *current;
+    struct PCB *current, *min, *next, *prevMin, *prevNext, *prevCurrent;
 
     current = ready_queue.head;
+    prevCurrent = NULL;
     while (current != NULL){
-        struct PCB *min = current; // inital min is the first element in the queue
-        struct PCB *next = current -> next;
-        struct PCB *prevMin = current;
+        min = current; // inital min is the first element in the queue
+        next = min -> next;
+        prevNext = min;
         while (next != NULL) {
             if (next->number_of_lines < min->number_of_lines) {
                 min = next;
+                prevMin = prevNext;
             }
+            prevNext = next;
             next = next -> next;
         }
-
-        if (min != current){ // switching the nodes if it's not in order
-            struct PCB *temp = current->next;
-            current->next = min->next;
-            min->next = temp;
-
-            if (prevMin != current) {
-                prevMin->next = min;
-            } else {
-                ready_queue.head=min;
+        if (min != current) { // switching the nodes if it's not in order
+            printf("min pid: %d\n", min->pid);
+            printf("current: %d\n", current->pid);
+            printf("head: %d\n", ready_queue.head->pid);
+            printf("bool: %s\n", current)
+            if (current->pid == ready_queue.head->pid){
+                printf("SDVDFD");
+                ready_queue.head = min;
+            } else if (prevMin != current) {
+                prevMin->next = min->next;
             }
-            current = ready_queue.head;
-       }
-
-        else {
-            current = current->next;
+            min->next = current->next;
+            current->next = min;
         }
+        prevCurrent = min;
+        current = min->next;
     }
     current = ready_queue.head;
-    for (int i = 0; i < 3; i++){
+    for (int i = 0; i < 2; i++){
         printf("%d: ", current->pid);
         printf("%d\n", current->next->pid);
+        current = current->next;
     }
 }

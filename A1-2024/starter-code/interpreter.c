@@ -245,9 +245,7 @@ int exec(char *arguments[], int argumentSize) {
         printf("Not a proper policy.\n");
         return badcommand();
     }
-
-    if (strcmp(policy, "FCFS") == 0) {
-        for (int i = 1; i < argumentSize - 1; i++) {
+    for (int i = 1; i < argumentSize - 1; i++) {
             FILE *fp = fopen(arguments[i], "rt");
             if (fp == NULL) {
                 printf("Failed to open file.\n");
@@ -255,7 +253,12 @@ int exec(char *arguments[], int argumentSize) {
             }
             create_pcb(fp);
             fclose(fp);
-        }
+    }
+    if (strcmp(policy, "FCFS") == 0) {
+       execute_FCFS();
+    }
+    if (strcmp(policy, "SJF") == 0) {
+        selectionSortQueue();
         execute_FCFS();
     }
     return 0;
