@@ -70,6 +70,7 @@ void selectionSortQueue() {
     current = ready_queue.head;
     prevCurrent = ready_queue.head;
     while (current != NULL){
+        printf("wrvef\n");
         min = current; // inital min is the first element in the queue
         next = current->next;
         prevNext = current;
@@ -83,18 +84,17 @@ void selectionSortQueue() {
             }
             prevNext = next;
             next = next -> next;
-            printf("next: %d\n", prevNext->pid);
         }
-        printf("kjbijubiojub\n");
         if (min != current) { // switching the nodes if it's not in order
             printf("min pid: %d\n", min->pid);
             printf("current: %d\n", current->pid);
             printf("head: %d\n", ready_queue.head->pid);
             struct PCB *temp = current;
 
-
+            temp->next = min->next;
             min->next = current->next;
             prevMin->next = temp;
+
             if (current->pid == ready_queue.head->pid){ // When we have to swap to first element
                 ready_queue.head = min;
             } else {
@@ -102,8 +102,8 @@ void selectionSortQueue() {
             }
             prevCurrent = min;
         }
-
         current = prevCurrent->next;
+        printf("current: %d\n", current->pid);
     }
     current = ready_queue.head;
     for (int i = 0; i < 2; i++){
