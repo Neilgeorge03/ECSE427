@@ -89,7 +89,7 @@ void selectionSortQueue() {
             printf("min pid: %d\n", min->pid);
             printf("current: %d\n", current->pid);
             printf("head: %d\n", ready_queue.head->pid);
-            struct PCB *temp = current;
+            struct PCB temp = *current;
 
             temp->next = min->next;
             min->next = current->next;
@@ -99,6 +99,11 @@ void selectionSortQueue() {
                 ready_queue.head = min;
             } else {
                 prevCurrent->next = min;
+            }
+            struct PCB *tempHead = ready_queue.head;
+            while (tempHead != NULL){
+                printf("tempHead: %d\n", tempHead->pid);
+                tempHead = tempHead->next;
             }
             prevCurrent = min;
         }
