@@ -68,11 +68,14 @@ void selectionSortQueue() {
     struct PCB *current, *min, *next, *prevMin, *prevNext, *prevCurrent;
 
     current = ready_queue.head;
-    prevCurrent = NULL;
+    prevCurrent = ready_queue.head;
     while (current != NULL){
         min = current; // inital min is the first element in the queue
-        next = min -> next;
-        prevNext = min;
+        next = current->next;
+        prevNext = current;
+        prevMin = NULL;
+        printf("Current: %d\n", current->pid);
+
         while (next != NULL) {
             if (next->number_of_lines < min->number_of_lines) {
                 min = next;
@@ -80,23 +83,27 @@ void selectionSortQueue() {
             }
             prevNext = next;
             next = next -> next;
+            printf("next: %d\n", prevNext->pid);
         }
+        printf("kjbijubiojub\n");
         if (min != current) { // switching the nodes if it's not in order
             printf("min pid: %d\n", min->pid);
             printf("current: %d\n", current->pid);
             printf("head: %d\n", ready_queue.head->pid);
-            printf("bool: %s\n", current)
-            if (current->pid == ready_queue.head->pid){
-                printf("SDVDFD");
-                ready_queue.head = min;
-            } else if (prevMin != current) {
-                prevMin->next = min->next;
-            }
+            struct PCB *temp = current;
+
+
             min->next = current->next;
-            current->next = min;
+            prevMin->next = temp;
+            if (current->pid == ready_queue.head->pid){ // When we have to swap to first element
+                ready_queue.head = min;
+            } else {
+                prevCurrent->next = min;
+            }
+            prevCurrent = min;
         }
-        prevCurrent = min;
-        current = min->next;
+
+        current = prevCurrent->next;
     }
     current = ready_queue.head;
     for (int i = 0; i < 2; i++){
