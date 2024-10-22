@@ -20,12 +20,13 @@ int execute_FCFS() {
 
     do {
         copy_pcb = dequeue();
+
         int last_index = copy_pcb->number_of_lines;
 
         // pc here refers to "program counter"
         while (copy_pcb->pc < last_index){
             sprintf(key, "%d_%d", copy_pcb->pid, copy_pcb->pc);
-            errCode = execute_instruction(key); 
+            errCode = execute_instruction(key);
             copy_pcb->pc++;
         }
         // important to free to remove from shell and computer memory

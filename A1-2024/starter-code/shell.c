@@ -32,6 +32,7 @@ int main(int argc, char *argv[]) {
 
         // If no "quit" command is found in batch mode, check for EOF and exit 
         if (fgets(userInput, MAX_USER_INPUT-1, stdin) == NULL && feof(stdin)) {
+            runBackground();
             exit(0);
         }
 

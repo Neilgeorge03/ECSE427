@@ -17,6 +17,7 @@ struct stat s;
 bool isBackground = false;
 int policyPosition = 1;
 char *policy;
+bool runningBackground = false;
 
 int help();
 int quit();
@@ -106,6 +107,7 @@ int interpreter(char* command_args[], int args_size) {
     
     } else if (strcmp(command_args[0], "exec") == 0) {
         if (args_size > 5) return badcommand();
+
         return exec(command_args, args_size);
     
     // If none of the valid commands are executed and more than 1 token -> Too many tokens
@@ -246,24 +248,22 @@ int print(char *var) {
     printf("%s\n", mem_get_value(var)); 
     return 0;
 }
-
-void addBackgroundCommands(char* command_args[], int argsLength) {
-    if (strcmp(command_args[0], "quit") == 0){
-        isBackground = false;
-        if (strcmp(policy, "FCFS") == 0) {
-            execute_FCFS();
-        } else if (strcmp(policy, "SJF") == 0) {
-            selectionSortQueue();
-            execute_FCFS();
-        } else if (strcmp(policy,"RR") == 0) {
-            execute_RR();
-        } else if (strcmp(policy, "AGING") == 0) {
-            selectionSortQueue();
-            execute_AGING();
-        }
-        return;
+void runBackground(){
+    isBackground = false;
+    runningBackground = true;
+    if (strcmp(policy, "FCFS") == 0) {
+        execute_FCFS();
+    } else if (strcmp(policy, "SJF") == 0) {
+        execute_FCFS();
+    } else if (strcmp(policy,"RR") == 0) {
+        execute_RR();
+    } else if (strcmp(policy, "AGING") == 0) {
+        selectionSortQueue();
+        execute_AGING();
     }
-
+    return;
+}
+void addBackgroundCommands(char* command_args[], int argsLength) {
     char command[100]; // Ensure this is large enough
     command[0] = '\0'; // Initialize the string to be empty
 
@@ -281,8 +281,11 @@ int exec(char *arguments[], int argumentSize) {
         isBackground = true;
         policyPosition = 2;
         createEmptyPCB();
+    } else {
+        policyPosition = 1;
     }
     policy = arguments[argumentSize - policyPosition];
+
     if (is_proper_policy(policy) != 0) {
         printf("Not a proper policy.\n");
         return badcommand();
@@ -293,10 +296,11 @@ int exec(char *arguments[], int argumentSize) {
                 printf("Failed to open file.\n");
                 return 3;
             }
+
             create_pcb(fp);
             fclose(fp);
     }
-    if (isBackground){
+    if (isBackground || runningBackground){
         return 0;
     }
     else if (strcmp(policy, "FCFS") == 0) {
