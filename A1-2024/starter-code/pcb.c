@@ -64,6 +64,8 @@ void free_pcb(struct PCB *pcb) {
     free(pcb);
 }
 void swap(struct PCB *min, struct PCB *current) {
+    // Swapping switches the values in each node but keeps the pointers as such
+    // Simplifies the swap and we don't get errors due to pointers
     // Can reuse swap later so made a new function for it
     if (min == NULL || current == NULL) return; // Ensure neither pointer is null
 
@@ -87,16 +89,18 @@ void swap(struct PCB *min, struct PCB *current) {
 }
 
 void selectionSortQueue() {
+    // Selection sort cause we have a singly linked list and I like selection more than quick sort :>
     if (ready_queue.head == NULL) return; // We don't care if the queue is null
 
     struct PCB *current, *min, *next;
-    current = ready_queue.head;
+    current = ready_queue.head; // what we'll use to iterate through the queue
 
     while (current != NULL){
         min = current; // Initial min is the first element in the queue
         next = current->next;
 
         while (next != NULL) {
+            // Finding the min value from current node to the end of the linked list
             if (next->number_of_lines < min->number_of_lines) {
                 min = next;
             }
@@ -105,6 +109,6 @@ void selectionSortQueue() {
         if (min != current) { // switching the nodes if it's not in order
             swap(min, current);
         }
-        current = current->next;
+        current = current->next; // iterate to the next node after swap if it occured
     }
 }
