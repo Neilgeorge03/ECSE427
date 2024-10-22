@@ -61,6 +61,28 @@ void free_pcb(struct PCB *pcb) {
     };
     free(pcb);
 }
+void swap(struct PCB *min, struct PCB *current) {
+    // Can reuse swap later so made a new function for it
+    if (min == NULL || current == NULL) return; // Ensure neither pointer is null
+
+    // Temporary variables to hold data for swapping
+    int tempPID = min->pid;
+    int tempScore = min->job_length_score;
+    int tempNOL = min->number_of_lines;
+    int tempPC = min->pc;
+
+    // Perform the swap
+    min->pid = current->pid;
+    min->job_length_score = current->job_length_score;
+    min->number_of_lines = current->number_of_lines;
+    min->pc = current->pc;
+
+    // Use temp data to put back inside
+    current->pid = tempPID;
+    current->job_length_score = tempScore;
+    current->number_of_lines = tempNOL;
+    current->pc = tempPC;
+}
 
 void selectionSortQueue() {
     if (ready_queue.head == NULL) return; // We don't care if the queue is null
@@ -79,20 +101,7 @@ void selectionSortQueue() {
             next = next -> next;
         }
         if (min != current) { // switching the nodes if it's not in order
-            int tempPID = current->pid;
-            int tempScore = current->job_length_score;
-            int tempNOL = current->number_of_lines;
-            int tempPC = current->pc;
-
-            current->pid = min->pid;
-            current->job_length_score = min->job_length_score;
-            current->number_of_lines = min->number_of_lines;
-            current->pc = min->pc;
-
-            min->pid = tempPID;
-            min->job_length_score = tempScore;
-            min->number_of_lines = tempNOL;
-            min->pc = tempPC;
+            swap(min, current);
         }
         current = current->next;
     }

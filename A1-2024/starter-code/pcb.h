@@ -26,5 +26,5 @@ struct PCB *create_pcb(FILE *fp);
 struct PCB *dequeue();
 void free_pcb(struct PCB *pcb);
 void selectionSortQueue();
-
+void swap(struct PCB *min, struct PCB *current);
 #endif
