@@ -59,11 +59,10 @@ void mem_set_value(char *var_in, char *value_in) {
 //get value based on input key
 char *mem_get_value(char *var_in) {
     int i;
-
     for (i = 0; i < MEM_SIZE; i++){
         if (strcmp(shellmemory[i].var, var_in) == 0){
             return strdup(shellmemory[i].value);
-        } 
+        }
     }
     return "Variable does not exist";
 }
@@ -87,20 +86,68 @@ int load_script_in_memory(FILE *fp, int pid) {
     return current_line_num;
 }
 
+void loadCommandInMemory(char *commandString, int lineNumber, int pid) {
+    char line[MAX_USER_INPUT];
+    char key[15];
+    int current_line_num = lineNumber;
+    memset(line, 0, MAX_USER_INPUT);
+    int k = 0;
+    sprintf(key, "%d_%d", pid, 0);
+    if (lineNumber == 0){
+        return mem_set_value(key, commandString);
+    }
+    for (int i = 0; i < MEM_SIZE; i++) {
+        if (strcmp(shellmemory[i].var, key) == 0) {
+            for (int j = i; j < MEM_SIZE && k < lineNumber - 1; j++){
+                sprintf(key, "%d_%d", pid, k);
+                if (strcmp(shellmemory[j].var, key) == 0){
+                    k++;
+                }
+            }
+            for (int j = k; j < 20; j++){
+                if ((strcmp(shellmemory[j].var, "none") == 0) && (strcmp(shellmemory[j].value, "none") == 0)){
+                    sprintf(key, "%d_%d", pid, lineNumber);
+                    shellmemory[j].var   = strdup(key);
+                    shellmemory[j].value = strdup(commandString);
+                    return;
+                }
+            }
+        }
+
+    }
+}
+
 // If successfully cleared => return 0. Otherwise return 1.
 int clear_mem(int pid, int length) {
     char key[15];
+    char key1[15];
     // to get the first occurence
     sprintf(key, "%d_%d", pid, 0);
 
     for (int i = 0; i < MEM_SIZE; i++) {
         if (strcmp(shellmemory[i].var, key) == 0) {
-            for (int j = 0; j < length; j++) {
-                shellmemory[i + j].var = "none";
-                shellmemory[i + j].value = "none";
+            // Suppose we have a variable between some of the PCB instructions
+            // We keep track of the lineNumber and check if the var corresponds to the actual command and not a variable
+            // Thus in the for loop we check either if pointer is reached its limit or if we've reached the end of
+            // memory space
+            // We can start at i since the first instance is always first so we don't have to restart at 0 again
+            int lineNumber = 0;
+            for (int j = i; j < MEM_SIZE && lineNumber < length; j++) {
+                sprintf(key1, "%d_%d", pid, lineNumber);
+                if (strcmp(shellmemory[i].var, key1) == 0) {
+                    shellmemory[j].var = "none";
+                    shellmemory[j].value = "none";
+                    lineNumber++;
+                }
             }
             return 0;
         }
     }
     return 1;
+}
+
+void printMemory(){
+    for (int i = 0; i < 20; i++){
+        printf("shellmemory[%d] var value: %s %s\n", i, shellmemory[i].var, shellmemory[i].value);
+    }
 }

@@ -32,6 +32,18 @@ struct PCB *create_pcb(FILE *fp) {
     return instantiate_pcb(pid, number_of_lines);
 }
 
+struct PCB *createEmptyPCB() {
+    int pid = generate_pid();
+    int number_of_lines = 0;
+    return instantiate_pcb(pid, number_of_lines);
+}
+void addPCBForegroundCommand(char *commandString) {
+    struct PCB *current = ready_queue.head;
+    loadCommandInMemory(commandString, current->number_of_lines, current->pid);
+    current->job_length_score++;
+    current->number_of_lines++;
+}
+
 void enqueue(struct PCB *pcb) {
     // make sure added job is in the tail
     pcb->next = NULL;
@@ -45,7 +57,14 @@ void enqueue(struct PCB *pcb) {
         copy_head->next = pcb;
     }
 }
-
+void enqueueHead(struct PCB *pcb){
+    if (ready_queue.head == NULL){
+        ready_queue.head = pcb;
+    } else {
+        pcb->next = ready_queue.head;
+        ready_queue.head = pcb;
+    }
+}
 struct PCB *dequeue() {
     if (ready_queue.head == NULL) {
         return NULL;
@@ -89,7 +108,7 @@ void swap(struct PCB *min, struct PCB *current) {
 }
 
 void selectionSortQueue() {
-    // Selection sort cause we have a singly linked list and I like selection more than quick sort :>
+    // Selection sort because we have a singly linked list and I like selection more than quick sort :>
     if (ready_queue.head == NULL || ready_queue.head->next == NULL) return; // We don't care if the queue is null
     struct PCB *current, *min, *next;
     current = ready_queue.head; // what we'll use to iterate through the queue
