@@ -96,38 +96,4 @@ void selectionSortQueue() {
         }
         current = current->next;
     }
-}void selectionSortQueue() {
-    if (ready_queue.head == NULL) return; // We don't care if the queue is null
-
-    struct PCB *current, *min, *next;
-    current = ready_queue.head;
-
-    while (current != NULL){
-        min = current; // Initial min is the first element in the queue
-        next = current->next;
-
-        while (next != NULL) {
-            if (next->number_of_lines < min->number_of_lines) {
-                min = next;
-            }
-            next = next -> next;
-        }
-        if (min != current) { // switching the nodes if it's not in order
-            int tempPID = current->pid;
-            int tempScore = current->job_length_score;
-            int tempNOL = current->number_of_lines;
-            int tempPC = current->pc;
-
-            current->pid = min->pid;
-            current->job_length_score = min->job_length_score;
-            current->number_of_lines = min->number_of_lines;
-            current->pc = min->pc;
-
-            min->pid = tempPID;
-            min->job_length_score = tempScore;
-            min->number_of_lines = tempNOL;
-            min->pc = tempPC;
-        }
-        current = current->next;
-    }
 }
