@@ -10,6 +10,8 @@ struct PCB {
     int pc;
     // Next PCB
     struct PCB *next;
+    // 1.2.4 Aging SJF job
+    int job_length_score;
 };
 
 struct READY_QUEUE {
@@ -23,5 +25,6 @@ void enqueue(struct PCB *pcb);
 struct PCB *create_pcb(FILE *fp);
 struct PCB *dequeue();
 void free_pcb(struct PCB *pcb);
-
+void selectionSortQueue();
+void swap(struct PCB *min, struct PCB *current);
 #endif
