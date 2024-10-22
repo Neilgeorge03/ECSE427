@@ -257,21 +257,14 @@ int exec(char *arguments[], int argumentSize) {
     if (strcmp(policy, "FCFS") == 0) {
        execute_FCFS();
     }
-    if (strcmp(policy, "SJF") == 0) {
+    else if (strcmp(policy, "SJF") == 0) {
         selectionSortQueue();
         execute_FCFS();
-
     } else if (strcmp(policy,"RR") == 0) {
-        for (int i = 1; i < argumentSize - 1; i++) {
-            FILE *fp = fopen(arguments[i], "rt");
-            if (fp == NULL) {
-                printf("Failed to open file.\n");
-                return 3;
-            }
-            create_pcb(fp);
-            fclose(fp);
-        }
         execute_RR();
+    } else if (strcmp(policy, "AGING") == 0) {
+        selectionSortQueue();
+        execute_AGING();
     }
     return 0;
 }

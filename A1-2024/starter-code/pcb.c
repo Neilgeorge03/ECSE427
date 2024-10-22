@@ -90,8 +90,7 @@ void swap(struct PCB *min, struct PCB *current) {
 
 void selectionSortQueue() {
     // Selection sort cause we have a singly linked list and I like selection more than quick sort :>
-    if (ready_queue.head == NULL) return; // We don't care if the queue is null
-
+    if (ready_queue.head == NULL || ready_queue.head->next == NULL) return; // We don't care if the queue is null
     struct PCB *current, *min, *next;
     current = ready_queue.head; // what we'll use to iterate through the queue
 
@@ -101,7 +100,7 @@ void selectionSortQueue() {
 
         while (next != NULL) {
             // Finding the min value from current node to the end of the linked list
-            if (next->number_of_lines < min->number_of_lines) {
+            if (next->job_length_score < min->job_length_score) {
                 min = next;
             }
             next = next -> next;
@@ -110,5 +109,18 @@ void selectionSortQueue() {
             swap(min, current);
         }
         current = current->next; // iterate to the next node after swap if it occured
+    }
+}
+
+
+void ageReadyQueue(){
+    if (ready_queue.head == NULL) return;
+    struct PCB *current = ready_queue.head;
+
+    while (current != NULL){
+        if (current->job_length_score != 0) {
+            current->job_length_score--;
+        }
+        current = current->next;
     }
 }

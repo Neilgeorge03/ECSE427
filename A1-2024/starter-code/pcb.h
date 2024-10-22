@@ -27,4 +27,5 @@ struct PCB *dequeue();
 void free_pcb(struct PCB *pcb);
 void selectionSortQueue();
 void swap(struct PCB *min, struct PCB *current);
+void ageReadyQueue();
 #endif
