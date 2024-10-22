@@ -65,55 +65,69 @@ void free_pcb(struct PCB *pcb) {
 void selectionSortQueue() {
     if (ready_queue.head == NULL) return; // We don't care if the queue is null
 
-    struct PCB *current, *min, *next, *prevMin, *prevNext, *prevCurrent;
-
+    struct PCB *current, *min, *next;
     current = ready_queue.head;
-    prevCurrent = ready_queue.head;
+
     while (current != NULL){
-        printf("wrvef\n");
-        min = current; // inital min is the first element in the queue
+        min = current; // Initial min is the first element in the queue
         next = current->next;
-        prevNext = current;
-        prevMin = NULL;
-        printf("Current: %d\n", current->pid);
 
         while (next != NULL) {
             if (next->number_of_lines < min->number_of_lines) {
                 min = next;
-                prevMin = prevNext;
             }
-            prevNext = next;
             next = next -> next;
         }
         if (min != current) { // switching the nodes if it's not in order
-            printf("min pid: %d\n", min->pid);
-            printf("current: %d\n", current->pid);
-            printf("head: %d\n", ready_queue.head->pid);
-            struct PCB temp = *current;
+            int tempPID = current->pid;
+            int tempScore = current->job_length_score;
+            int tempNOL = current->number_of_lines;
+            int tempPC = current->pc;
 
-            temp->next = min->next;
-            min->next = current->next;
-            prevMin->next = temp;
+            current->pid = min->pid;
+            current->job_length_score = min->job_length_score;
+            current->number_of_lines = min->number_of_lines;
+            current->pc = min->pc;
 
-            if (current->pid == ready_queue.head->pid){ // When we have to swap to first element
-                ready_queue.head = min;
-            } else {
-                prevCurrent->next = min;
-            }
-            struct PCB *tempHead = ready_queue.head;
-            while (tempHead != NULL){
-                printf("tempHead: %d\n", tempHead->pid);
-                tempHead = tempHead->next;
-            }
-            prevCurrent = min;
+            min->pid = tempPID;
+            min->job_length_score = tempScore;
+            min->number_of_lines = tempNOL;
+            min->pc = tempPC;
         }
-        current = prevCurrent->next;
-        printf("current: %d\n", current->pid);
+        current = current->next;
     }
+}void selectionSortQueue() {
+    if (ready_queue.head == NULL) return; // We don't care if the queue is null
+
+    struct PCB *current, *min, *next;
     current = ready_queue.head;
-    for (int i = 0; i < 2; i++){
-        printf("%d: ", current->pid);
-        printf("%d\n", current->next->pid);
+
+    while (current != NULL){
+        min = current; // Initial min is the first element in the queue
+        next = current->next;
+
+        while (next != NULL) {
+            if (next->number_of_lines < min->number_of_lines) {
+                min = next;
+            }
+            next = next -> next;
+        }
+        if (min != current) { // switching the nodes if it's not in order
+            int tempPID = current->pid;
+            int tempScore = current->job_length_score;
+            int tempNOL = current->number_of_lines;
+            int tempPC = current->pc;
+
+            current->pid = min->pid;
+            current->job_length_score = min->job_length_score;
+            current->number_of_lines = min->number_of_lines;
+            current->pc = min->pc;
+
+            min->pid = tempPID;
+            min->job_length_score = tempScore;
+            min->number_of_lines = tempNOL;
+            min->pc = tempPC;
+        }
         current = current->next;
     }
 }
