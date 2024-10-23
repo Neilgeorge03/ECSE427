@@ -19,7 +19,7 @@ struct READY_QUEUE {
 };
 
 extern struct READY_QUEUE ready_queue;
-
+struct PCB *createEmptyPCB();
 struct PCB *instantiate_pcb(int pid, int number_of_lines);
 void enqueue(struct PCB *pcb);
 struct PCB *create_pcb(FILE *fp);
@@ -27,4 +27,7 @@ struct PCB *dequeue();
 void free_pcb(struct PCB *pcb);
 void selectionSortQueue();
 void swap(struct PCB *min, struct PCB *current);
+void ageReadyQueue();
+void addPCBForegroundCommand(char *commandString);
+
 #endif

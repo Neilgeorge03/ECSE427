@@ -11,8 +11,8 @@ int is_interactive_mode();
 
 // Start of everything
 int main(int argc, char *argv[]) {
-    printf("Shell version 1.3 created September 2024\n");
-    help();
+    printf("Shell version 1.3 created September 2024\n\n");
+    // help();
 
     char prompt = '$';  				// Shell prompt
     char userInput[MAX_USER_INPUT];		// user's input stored here
@@ -32,6 +32,7 @@ int main(int argc, char *argv[]) {
 
         // If no "quit" command is found in batch mode, check for EOF and exit 
         if (fgets(userInput, MAX_USER_INPUT-1, stdin) == NULL && feof(stdin)) {
+            runBackground();
             exit(0);
         }
 

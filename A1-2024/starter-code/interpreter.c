@@ -9,10 +9,15 @@
 #include "helpers.h"
 #include "pcb.h"
 #include "scheduler.h"
+#include <stdbool.h>
 
 int MAX_ARGS_SIZE = 1000;
 char* CURRENT_LOCATION = ".";
 struct stat s;
+bool isBackground = false;
+int policyPosition = 1;
+char *policy;
+bool runningBackground = false;
 
 int help();
 int quit();
@@ -27,6 +32,8 @@ int echo(char *word);
 int my_ls();
 int exec(char *arguments[], int argumentSize);
 int set(char *arguments[], int argumentSize);
+void addBackgroundCommands(char* command_args[], int argsLength);
+
 
 int badcommand(){
     printf("Unknown Command\n");
@@ -50,8 +57,10 @@ int interpreter(char* command_args[], int args_size) {
     for (i = 0; i < args_size; i++) { // terminate args at newlines
         command_args[i][strcspn(command_args[i], "\r\n")] = 0;
     }
-
-    if (strcmp(command_args[0], "help") == 0){
+    if (isBackground){
+        addBackgroundCommands(command_args, args_size);
+    }
+    else if (strcmp(command_args[0], "help") == 0){
         if (args_size != 1) return badcommand();
         return help();
 
@@ -98,6 +107,7 @@ int interpreter(char* command_args[], int args_size) {
     
     } else if (strcmp(command_args[0], "exec") == 0) {
         if (args_size > 5) return badcommand();
+
         return exec(command_args, args_size);
     
     // If none of the valid commands are executed and more than 1 token -> Too many tokens
@@ -238,40 +248,72 @@ int print(char *var) {
     printf("%s\n", mem_get_value(var)); 
     return 0;
 }
+void runBackground(){
+    isBackground = false;
+    runningBackground = true;
+    if (strcmp(policy, "FCFS") == 0) {
+        execute_FCFS();
+    } else if (strcmp(policy, "SJF") == 0) {
+        execute_FCFS();
+    } else if (strcmp(policy,"RR") == 0) {
+        execute_RR();
+    } else if (strcmp(policy, "AGING") == 0) {
+        selectionSortQueue();
+        execute_AGING();
+    }
+    return;
+}
+void addBackgroundCommands(char* command_args[], int argsLength) {
+    char command[100]; // Ensure this is large enough
+    command[0] = '\0'; // Initialize the string to be empty
+
+    for (int i = 0; i < argsLength; i++) {
+        strcat(command, command_args[i]);
+        if (i < argsLength - 1) {
+            strcat(command, " "); // Add a space after each string except the last
+        }
+    }
+    addPCBForegroundCommand(command);
+}
 
 int exec(char *arguments[], int argumentSize) {
-    char *policy = arguments[argumentSize - 1];
+    if (strcmp(arguments[argumentSize-1], "#") == 0){
+        isBackground = true;
+        policyPosition = 2;
+        createEmptyPCB();
+    } else {
+        policyPosition = 1;
+    }
+    policy = arguments[argumentSize - policyPosition];
+
     if (is_proper_policy(policy) != 0) {
         printf("Not a proper policy.\n");
         return badcommand();
     }
-    for (int i = 1; i < argumentSize - 1; i++) {
+    for (int i = 1; i < argumentSize - policyPosition; i++) {
             FILE *fp = fopen(arguments[i], "rt");
             if (fp == NULL) {
                 printf("Failed to open file.\n");
                 return 3;
             }
+
             create_pcb(fp);
             fclose(fp);
     }
-    if (strcmp(policy, "FCFS") == 0) {
+    if (isBackground || runningBackground){
+        return 0;
+    }
+    else if (strcmp(policy, "FCFS") == 0) {
        execute_FCFS();
     }
-    if (strcmp(policy, "SJF") == 0) {
+    else if (strcmp(policy, "SJF") == 0) {
         selectionSortQueue();
         execute_FCFS();
-
     } else if (strcmp(policy,"RR") == 0) {
-        for (int i = 1; i < argumentSize - 1; i++) {
-            FILE *fp = fopen(arguments[i], "rt");
-            if (fp == NULL) {
-                printf("Failed to open file.\n");
-                return 3;
-            }
-            create_pcb(fp);
-            fclose(fp);
-        }
         execute_RR();
+    } else if (strcmp(policy, "AGING") == 0) {
+        selectionSortQueue();
+        execute_AGING();
     }
     return 0;
 }
