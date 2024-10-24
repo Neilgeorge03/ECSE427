@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #define MEM_SIZE 1000
 #define MAX_SCRIPT_SIZE (MAX_USER_INPUT * 100)
 
