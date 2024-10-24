@@ -1,5 +1,5 @@
 #define MEM_SIZE 1000
-#define MAX_SCRIPT_SIZE  (MAX_USER_INPUT * 100)
+#define MAX_SCRIPT_SIZE (MAX_USER_INPUT * 100)
 
 void mem_init();
 char *mem_get_value(char *var);
