@@ -6,7 +6,7 @@ struct PCB {
     // Length of SCRIPT based on how many lines
     int number_of_lines;
     // Program counter (pc). Keeps track of instruction to execute.
-    // pc <= number_of_lines
+    // pc <= number_of_lines 
     int pc;
     // Next PCB
     struct PCB *next;
