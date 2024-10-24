@@ -10,7 +10,8 @@ const char *ExecutionPolicy[] = {
     "FCFS",
     "SJF",
     "RR",
-    "AGING"
+    "AGING",
+    "RR30"
 };
 
 int execute_FCFS() {
