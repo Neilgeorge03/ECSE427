@@ -256,7 +256,7 @@ void runBackground(){
     } else if (strcmp(policy, "SJF") == 0) {
         execute_FCFS();
     } else if (strcmp(policy,"RR") == 0) {
-        execute_RR();
+        execute_RR(2);
     } else if (strcmp(policy, "AGING") == 0) {
         selectionSortQueue();
         execute_AGING();
@@ -310,7 +310,7 @@ int exec(char *arguments[], int argumentSize) {
         selectionSortQueue();
         execute_FCFS();
     } else if (strcmp(policy,"RR") == 0) {
-        execute_RR();
+        execute_RR(2);
     } else if (strcmp(policy, "AGING") == 0) {
         selectionSortQueue();
         execute_AGING();

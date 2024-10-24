@@ -34,6 +34,7 @@ int execute_FCFS() {
     } while(ready_queue.head != NULL); 
     return errCode;
 }
+
 int execute_AGING() {
     int errCode;
     struct PCB *copy_pcb, *head;
@@ -63,14 +64,14 @@ int execute_AGING() {
     return errCode;
 }
 
-int execute_RR() {
+int execute_RR(int count) {
     int errCode;
     struct PCB *copy_pcb;
     char key[100];
     do {
         copy_pcb = dequeue();
         // + 2 because in RR we run two instruction before switching
-        int last_index = copy_pcb->pc + 2;
+        int last_index = copy_pcb->pc + count;
 
         while (copy_pcb->pc < last_index && copy_pcb->pc < copy_pcb->number_of_lines){
             sprintf(key, "%d_%d", copy_pcb->pid, copy_pcb->pc);
