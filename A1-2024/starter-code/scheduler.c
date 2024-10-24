@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char *ExecutionPolicy[] = {"FCFS", "SJF", "RR", "AGING"};
+const char *ExecutionPolicy[] = {"FCFS", "SJF", "RR", "AGING", "RR30"};
 
 int execute_FCFS() {
     int errCode;

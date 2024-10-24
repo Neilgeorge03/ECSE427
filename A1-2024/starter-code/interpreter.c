@@ -128,6 +128,8 @@ int interpreter(char *command_args[], int args_size) {
 
     } else
         return badcommand();
+
+    return -1;
 }
 
 int my_ls() {
@@ -260,6 +262,7 @@ int print(char *var) {
     printf("%s\n", mem_get_value(var));
     return 0;
 }
+
 void runBackground() {
     isBackground = false;
     runningBackground = true;
@@ -272,9 +275,12 @@ void runBackground() {
     } else if (strcmp(policy, "AGING") == 0) {
         selectionSortQueue();
         execute_AGING();
+    } else if (strcmp(policy, "RR30") == 0) {
+        execute_RR(30);
     }
     return;
 }
+
 void addBackgroundCommands(char *command_args[], int argsLength) {
     char command[100]; // Ensure this is large enough
     command[0] = '\0'; // Initialize the string to be empty
@@ -325,6 +331,8 @@ int exec(char *arguments[], int argumentSize) {
     } else if (strcmp(policy, "AGING") == 0) {
         selectionSortQueue();
         execute_AGING();
+    } else if (strcmp(policy, "RR30") == 0) {
+        execute_RR(30);
     }
     return 0;
 }
