@@ -6,18 +6,12 @@
 #include "shellmemory.h"
 #include "helpers.h"
 
-const char *ExecutionPolicy[] = {
-    "FCFS",
-    "SJF",
-    "RR",
-    "AGING",
-    "RR30"
-};
+const char *ExecutionPolicy[] = {"FCFS", "SJF", "RR", "AGING", "RR30"};
 
 int execute_FCFS() {
     int errCode;
     struct PCB *copy_pcb;
-    char key[100];
+    char key[KEY_SIZE];
 
     do {
         copy_pcb = dequeue();
@@ -39,7 +33,7 @@ int execute_FCFS() {
 int execute_AGING() {
     int errCode;
     struct PCB *copy_pcb, *head;
-    char key[100];
+    char key[KEY_SIZE];
 
     do {
         copy_pcb = dequeue();
@@ -68,7 +62,7 @@ int execute_AGING() {
 int execute_RR(int count) {
     int errCode;
     struct PCB *copy_pcb;
-    char key[100];
+    char key[KEY_SIZE];
     do {
         copy_pcb = dequeue();
         // + 2 because in RR we run two instruction before switching

@@ -80,7 +80,7 @@ int execute_instruction(char *key) {
 }
 
 
-int is_proper_policy(char *policy) {
+int isProperPolicy(char *policy) {
     for(int i = 0; i < 5; i++) {
         if(strcasecmp(policy, ExecutionPolicy[i]) == 0) {
             return 0;
