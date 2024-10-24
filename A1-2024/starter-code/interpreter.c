@@ -3,6 +3,7 @@
 #include "scheduler.h"
 #include "shell.h"
 #include "shellmemory.h"
+#include "queue.h"
 #include <dirent.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -27,7 +28,6 @@ int my_cd(char *folder);
 int print(char *var);
 int run(char *script);
 int my_ls();
-int badcommandFileDoesNotExist();
 int echo(char *word);
 int my_ls();
 int exec(char *arguments[], int argumentSize);
@@ -288,27 +288,33 @@ void addBackgroundCommands(char *command_args[], int argsLength) {
     for (int i = 0; i < argsLength; i++) {
         strcat(command, command_args[i]);
         if (i < argsLength - 1) {
-            strcat(command,
-                   " "); // Add a space after each string except the last
+            strcat(command, " "); // Add a space after each string except the last
         }
     }
     addPCBForegroundCommand(command);
 }
 
 int exec(char *arguments[], int argumentSize) {
-    if (strcmp(arguments[argumentSize - 1], "#") == 0) {
-        isBackground = true;
-        policyPosition = 2;
-        createEmptyPCB();
-    } else {
-        policyPosition = 1;
-    }
-    policy = arguments[argumentSize - policyPosition];
+    // Determine if "#" is option.
+    // if (strcmp(arguments[argumentSize - 1], "#") == 0) {
+    //     isBackground = true;
+    //     policyPosition = 2;
+    //     createEmptyPCB();
+    // } else {
+    //     policyPosition = 1;
+    // }
+    // policy = arguments[argumentSize - policyPosition];
+
+    policy = arguments[argumentSize - 1];
+
+    // is MT optional
+
 
     if (is_proper_policy(policy) != 0) {
         printf("Not a proper policy.\n");
         return badcommand();
     }
+    
     for (int i = 1; i < argumentSize - policyPosition; i++) {
         FILE *fp = fopen(arguments[i], "rt");
         if (fp == NULL) {
@@ -319,6 +325,7 @@ int exec(char *arguments[], int argumentSize) {
         create_pcb(fp);
         fclose(fp);
     }
+
     if (isBackground || runningBackground) {
         return 0;
     } else if (strcmp(policy, "FCFS") == 0) {

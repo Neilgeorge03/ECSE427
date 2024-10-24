@@ -1,5 +1,6 @@
 #include "helpers.h"
 #include "pcb.h"
+#include "queue.h"
 #include "shell.h"
 #include "shellmemory.h"
 #include <stdio.h>
@@ -67,7 +68,6 @@ int execute_RR(int count) {
     char key[100];
     do {
         copy_pcb = dequeue();
-        // + 2 because in RR we run two instruction before switching
         int last_index = copy_pcb->pc + count;
 
         while (copy_pcb->pc < last_index &&

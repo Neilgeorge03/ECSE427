@@ -1,6 +1,7 @@
 #include "scheduler.h"
 #include "shell.h"
 #include "shellmemory.h"
+#include "pcb.h"
 #include <ctype.h>
 #include <dirent.h>
 #include <stdio.h>
@@ -88,4 +89,30 @@ int is_proper_policy(char *policy) {
         }
     }
     return 1;
+}
+
+void swap(struct PCB *min, struct PCB *current) {
+    // Swapping switches the values in each node but keeps the pointers as such
+    // Simplifies the swap and we don't get errors due to pointers
+    // Can reuse swap later so made a new function for it
+    if (min == NULL || current == NULL)
+        return; // Ensure neither pointer is null
+
+    // Temporary variables to hold data for swapping
+    int tempPID = min->pid;
+    int tempScore = min->job_length_score;
+    int tempNOL = min->number_of_lines;
+    int tempPC = min->pc;
+
+    // Perform the swap
+    min->pid = current->pid;
+    min->job_length_score = current->job_length_score;
+    min->number_of_lines = current->number_of_lines;
+    min->pc = current->pc;
+
+    // Use temp data to put back inside
+    current->pid = tempPID;
+    current->job_length_score = tempScore;
+    current->number_of_lines = tempNOL;
+    current->pc = tempPC;
 }
