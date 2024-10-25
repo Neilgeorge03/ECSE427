@@ -83,7 +83,6 @@ void *worker_execute_RR(void *count_arg) {
         pthread_mutex_unlock(&mutex);
 
         int last_index = copy_pcb->pc + count;
-        
         while (copy_pcb->pc < last_index && copy_pcb->pc < copy_pcb->number_of_lines){
             sprintf(key, "%d_%d", copy_pcb->pid, copy_pcb->pc);
             errCode = execute_instruction(key); 
@@ -129,7 +128,7 @@ void execute_RR(int count) {
             int last_index = copy_pcb->pc + count;
 
             // The condition makes sure that 1 - only a predetermined amount of instruction is run
-            // and 2 - if it reaches the end, the loop stops. 
+            // and 2 - if it reaches the end, the loop stops.
             while (copy_pcb->pc < last_index && copy_pcb->pc < copy_pcb->number_of_lines){
                 sprintf(key, "%d_%d", copy_pcb->pid, copy_pcb->pc);
                 errCode = execute_instruction(key); 
