@@ -48,7 +48,6 @@ int badcommandFileDoesNotExist(){
 // Interpret commands and their arguments
 int interpreter(char* command_args[], int args_size) {
     int i;
-
     if (args_size < 1 || args_size > MAX_ARGS_SIZE) {
         return badcommand();
     }
@@ -65,6 +64,12 @@ int interpreter(char* command_args[], int args_size) {
 
     } else if (strcmp(command_args[0], "quit") == 0) {
         if (args_size != 1) return badcommand();
+        struct PCB *current = ready_queue.head;
+        while (current){
+            struct PCB *temp = current->next;
+            free_pcb(current);
+            current = temp;
+        }
         return quit();
 
     } else if (strcmp(command_args[0], "my_touch") == 0) {
