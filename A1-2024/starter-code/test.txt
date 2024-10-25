@@ -1,4 +1,0 @@
-exec prog1.txt RR #
-echo progDONE
-echo progDONE2
-echo progDONE3

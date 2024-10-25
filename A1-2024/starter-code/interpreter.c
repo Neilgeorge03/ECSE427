@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <pthread.h>
 #include "shellmemory.h"
 #include "interpreter.h"
 #include "shell.h"
@@ -17,9 +18,6 @@ struct stat s;
 bool isBackground = false;
 char *policy;
 bool runningBackground = false;
-// 0 => single thread
-// 1 => multi thread (2 workers)
-int isMultithreadingMode = 0;
 
 int help();
 int quit();
@@ -172,6 +170,14 @@ int my_touch(char *filename) {
 }
 
 int quit() {
+    // If it's in MT mode, and a "quit" has been called while 
+    // ready_queue is not empty => join the threads. 
+    if (isMultithreadingMode && ready_queue.head != NULL) {
+       pthread_join(thread1, NULL);
+       pthread_join(thread2, NULL);
+       pthread_mutex_destroy(&mutex);
+    }
+
     printf("Bye!\n");
     exit(0);
 }

@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
             exit(0);
         }
 
-        // strcpy(userInput, "run ../test-cases/run.txt");
+        //strcpy(userInput, "exec prog1.txt prog2.txt prog3.txt RR MT");
         for (char *token = strtok(userInput,";"); token != NULL; token = strtok(NULL, ";")){
             errorCode = parseInput(token);
             if (errorCode == -1) exit(99);
