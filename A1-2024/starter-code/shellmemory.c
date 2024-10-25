@@ -69,7 +69,7 @@ char *mem_get_value(char *var_in) {
 
 int load_script_in_memory(FILE *fp, int pid) {
     char line[MAX_USER_INPUT];
-    char key[15];
+    char key[KEY_SIZE];
     int current_line_num = 0;
     memset(line, 0, MAX_USER_INPUT);
 
@@ -88,7 +88,7 @@ int load_script_in_memory(FILE *fp, int pid) {
 
 void loadCommandInMemory(char *commandString, int lineNumber, int pid) {
     char line[MAX_USER_INPUT];
-    char key[15];
+    char key[KEY_SIZE];
     int current_line_num = lineNumber;
     memset(line, 0, MAX_USER_INPUT);
     int k = 0;
@@ -119,8 +119,8 @@ void loadCommandInMemory(char *commandString, int lineNumber, int pid) {
 
 // If successfully cleared => return 0. Otherwise return 1.
 int clear_mem(int pid, int length) {
-    char key[15];
-    char key1[15];
+    char key[KEY_SIZE];
+    char key1[KEY_SIZE];
     // to get the first occurence
     sprintf(key, "%d_%d", pid, 0);
 

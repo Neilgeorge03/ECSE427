@@ -4,18 +4,18 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdbool.h>
+#include <pthread.h>
 #include "shellmemory.h"
+#include "interpreter.h"
 #include "shell.h"
 #include "helpers.h"
 #include "pcb.h"
 #include "scheduler.h"
-#include <stdbool.h>
 
 int MAX_ARGS_SIZE = 1000;
-char* CURRENT_LOCATION = ".";
 struct stat s;
 bool isBackground = false;
-int policyPosition = 1;
 char *policy;
 bool runningBackground = false;
 
@@ -27,7 +27,6 @@ int my_cd(char *folder);
 int print(char *var);
 int run(char *script);
 int my_ls();
-int badcommandFileDoesNotExist();
 int echo(char *word);
 int my_ls();
 int exec(char *arguments[], int argumentSize);
@@ -106,7 +105,7 @@ int interpreter(char* command_args[], int args_size) {
         return my_ls();
     
     } else if (strcmp(command_args[0], "exec") == 0) {
-        if (args_size > 5) return badcommand();
+        if (args_size > 6) return badcommand();
 
         return exec(command_args, args_size);
     
@@ -171,6 +170,14 @@ int my_touch(char *filename) {
 }
 
 int quit() {
+    // If it's in MT mode, and a "quit" has been called while 
+    // ready_queue is not empty => join the threads. 
+    if (isMultithreadingMode && ready_queue.head != NULL) {
+       pthread_join(thread1, NULL);
+       pthread_join(thread2, NULL);
+       pthread_mutex_destroy(&mutex);
+    }
+
     printf("Bye!\n");
     exit(0);
 }
@@ -281,20 +288,31 @@ void addBackgroundCommands(char* command_args[], int argsLength) {
 }
 
 int exec(char *arguments[], int argumentSize) {
-    if (strcmp(arguments[argumentSize-1], "#") == 0){
-        isBackground = true;
-        policyPosition = 2;
-        createEmptyPCB();
-    } else {
-        policyPosition = 1;
-    }
-    policy = arguments[argumentSize - policyPosition];
+    // numOfOptionalSettings start at 1 and not 0 due to zero indexing. No other reason.
+    int numOfOptionalSettings = 1;
 
-    if (is_proper_policy(policy) != 0) {
+    // MT [optional] will always be the last argument. If it is, then in cases when there
+    // is another optional argument ("#"), we need to keep track of the fact that there 
+    // already exists an optional argument.
+    if (strcmp(arguments[argumentSize - numOfOptionalSettings], "MT") == 0) {
+        isMultithreadingMode = 1; 
+        numOfOptionalSettings++;
+    }
+
+    if (strcmp(arguments[argumentSize - numOfOptionalSettings], "#") == 0) {
+        isBackground = true;
+        createEmptyPCB();
+        numOfOptionalSettings++;
+    }
+
+    policy = arguments[argumentSize - numOfOptionalSettings];
+    if (isProperPolicy(policy) != 0) {
         printf("Not a proper policy.\n");
         return badcommand();
     }
-    for (int i = 1; i < argumentSize - policyPosition; i++) {
+
+    // Load files into Shell memory and create PCBs
+    for (int i = 1; i < argumentSize - numOfOptionalSettings; i++) {
             FILE *fp = fopen(arguments[i], "rt");
             if (fp == NULL) {
                 printf("Failed to open file.\n");
@@ -304,23 +322,33 @@ int exec(char *arguments[], int argumentSize) {
             create_pcb(fp);
             fclose(fp);
     }
+
     if (isBackground || runningBackground){
         return 0;
     }
+
     else if (strcmp(policy, "FCFS") == 0) {
        execute_FCFS();
     }
+
     else if (strcmp(policy, "SJF") == 0) {
         selectionSortQueue();
         execute_FCFS();
-    } else if (strcmp(policy,"RR") == 0) {
-        execute_RR(2);
-    } else if (strcmp(policy, "AGING") == 0) {
+    }
+   
+    else if (strcmp(policy, "AGING") == 0) {
         selectionSortQueue();
         execute_AGING();
-    } else if (strcmp(policy, "RR30") == 0) {
+    }
+    
+    else if (strcmp(policy, "RR") == 0) {
+        execute_RR(2);
+    }
+   
+    else if (strcmp(policy, "RR30") == 0) {
         execute_RR(30);
     }
+
     return 0;
 }
 

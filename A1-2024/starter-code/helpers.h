@@ -5,4 +5,4 @@ int my_ls_sort(const struct dirent **namelist_one, const struct dirent **namelis
 int check_alphanum(char *name);
 int generate_pid();
 int execute_instruction(char *key);
-int is_proper_policy(char *policy);
+int isProperPolicy(char *policy);
