@@ -72,9 +72,13 @@ void *worker_execute_RR(void *count_arg) {
     char key[KEY_SIZE];
     int errCode;
 
-    while (ready_queue.head != NULL) {
-
+    while (1) {
         pthread_mutex_lock(&mutex);
+        if (ready_queue.head == NULL) {
+            pthread_mutex_unlock(&mutex);
+            break;
+        }
+
         copy_pcb = dequeue();
         pthread_mutex_unlock(&mutex);
 
@@ -90,19 +94,18 @@ void *worker_execute_RR(void *count_arg) {
             copy_pcb->pc++;
         }
 
+        pthread_mutex_lock(&mutex);
         if (copy_pcb->pc == copy_pcb->number_of_lines) {
             // If the process block ends or if quit method is called
             // threads must be joined
             free_pcb(copy_pcb);
-            pthread_join(thread1, NULL);
-            pthread_join(thread2, NULL); 
-            pthread_mutex_destroy(&mutex); 
+
         } else {
-            pthread_mutex_lock(&mutex);
             enqueue(copy_pcb);
-            pthread_mutex_unlock(&mutex);
         }
+        pthread_mutex_unlock(&mutex);
     }
+    pthread_exit(NULL);
 }
 
 void execute_RR(int count) {
@@ -111,6 +114,11 @@ void execute_RR(int count) {
         pthread_mutex_init(&mutex, NULL);
         pthread_create(&thread1, NULL, worker_execute_RR, count_arg);
         pthread_create(&thread2, NULL, worker_execute_RR, count_arg);
+
+        pthread_join(thread1, NULL);
+        pthread_join(thread2, NULL);
+        pthread_mutex_destroy(&mutex);
+
     } else {
         struct PCB *copy_pcb;
         char key[KEY_SIZE];
