@@ -12,8 +12,11 @@ const char *ExecutionPolicy[] = {"FCFS", "SJF", "RR", "AGING", "RR30"};
 // 0 => single thread
 // 1 => multi thread (2 workers)
 int isMultithreadingMode = 0;
+int isBackgroundMode = 0;
 pthread_t thread1, thread2;
 pthread_mutex_t mutex;
+
+void executeBackgroundTask(int count);
 
 int execute_FCFS() {
     int errCode;
@@ -70,37 +73,30 @@ void *worker_execute_RR(void *count_arg) {
     int count = *((int *)count_arg);
     struct PCB *copy_pcb;
     char key[KEY_SIZE];
-    int errCode;
 
-    while (1) {
+    while (ready_queue.head != NULL) {
         pthread_mutex_lock(&mutex);
-        if (ready_queue.head == NULL) {
-            pthread_mutex_unlock(&mutex);
-            break;
-        }
-
         copy_pcb = dequeue();
         pthread_mutex_unlock(&mutex);
 
+        if (copy_pcb->pid == -100) {
+            executeBackgroundTask(count);
+        }
+
         int last_index = copy_pcb->pc + count;
-        while (copy_pcb->pc < last_index && copy_pcb->pc < copy_pcb->number_of_lines){
+        while (copy_pcb->pid != -100 && copy_pcb->pc < last_index && copy_pcb->pc < copy_pcb->number_of_lines){
             sprintf(key, "%d_%d", copy_pcb->pid, copy_pcb->pc);
-            errCode = execute_instruction(key); 
-            if (errCode != 0) {
-                printf("Fatal error during instruction execution occured.\n");
-                pthread_exit(NULL); 
-            }
+            execute_instruction(key); 
             copy_pcb->pc++;
         }
 
         pthread_mutex_lock(&mutex);
-        if (copy_pcb->pc == copy_pcb->number_of_lines) {
+        if (copy_pcb->pid != 100 && copy_pcb->pc != copy_pcb->number_of_lines) {
+            enqueue(copy_pcb);
+        } else {
             // If the process block ends or if quit method is called
             // threads must be joined
             free_pcb(copy_pcb);
-
-        } else {
-            enqueue(copy_pcb);
         }
         pthread_mutex_unlock(&mutex);
     }
@@ -127,25 +123,39 @@ void execute_RR(int count) {
             copy_pcb = dequeue();
             int last_index = copy_pcb->pc + count;
 
+            if (copy_pcb ->pid == -100) {
+                executeBackgroundTask(count);
+            }
+
             // The condition makes sure that 1 - only a predetermined amount of instruction is run
-            // and 2 - if it reaches the end, the loop stops.
-            while (copy_pcb->pc < last_index && copy_pcb->pc < copy_pcb->number_of_lines){
+            // 2 - if it reaches the end, the loop stops and 3 - not a background execution
+            while (copy_pcb->pid != -100 && copy_pcb->pc < last_index && copy_pcb->pc < copy_pcb->number_of_lines){
                 sprintf(key, "%d_%d", copy_pcb->pid, copy_pcb->pc);
-                errCode = execute_instruction(key); 
-                if (errCode != 0) {
-                    printf("Fatal error during instruction execution occured.\n");
-                    return; 
-                }
+                execute_instruction(key); 
                 copy_pcb->pc++;
             }
 
-            if (copy_pcb->pc == copy_pcb->number_of_lines) {
-                // If the process block ends or if quit method is called
-                // threads must be joined
+            if (copy_pcb->pid != -100 && copy_pcb->pc == copy_pcb->number_of_lines) {
                 free_pcb(copy_pcb);
             } else {
                 enqueue(copy_pcb);
             }
         }
+    }
+}
+
+void executeBackgroundTask(int count) {
+    int i = 0;
+    int errCode;
+    char userInput[MAX_USER_INPUT];
+    char *tok;
+    while(i < count && fgets(userInput, MAX_USER_INPUT-1, stdin) != NULL) {
+        // printf("the line being executed: %s\n", userInput);
+        for (tok = strtok(userInput, ";"); tok != NULL; tok = strtok(NULL, ";")) {
+            errCode = parseInput(tok);
+            if (errCode == -1) return;
+            memset(userInput, 0, sizeof(userInput));
+        }
+        i++;
     }
 }
