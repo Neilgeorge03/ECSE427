@@ -171,12 +171,14 @@ int my_touch(char *filename) {
 }
 
 int quit() {
+    puts("hello quits\n");
     // If it's in MT mode, and a "quit" has been called while 
     // ready_queue is not empty => join the threads. 
     if (isMultithreadingMode && ready_queue.head != NULL) {
        pthread_join(thread1, NULL);
        pthread_join(thread2, NULL);
        pthread_mutex_destroy(&mutex);
+       isMultithreadingMode = 0;
     }
 
     printf("Bye!\n");

@@ -84,7 +84,7 @@ struct PCB *dequeue() {
 }
 
 void free_pcb(struct PCB *pcb) {
-    // printf("the pid is %d\n", pcb->pid);
+    printf("the pid is %d\n", pcb->pid);
     char key[KEY_SIZE];
     sprintf(key, "%d_0", pcb->pid);
     char *checkValue = mem_get_value(key);

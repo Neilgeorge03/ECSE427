@@ -27,9 +27,14 @@ int execute_FCFS() {
         copy_pcb = dequeue();
 
         int last_index = copy_pcb->number_of_lines;
+        if (copy_pcb ->pid == -100) {
+            // 1000 is an arbitrary large number to ensure all instructions
+            // possible are executed
+            executeBackgroundTask(1000);
+        }
 
         // pc here refers to "program counter"
-        while (copy_pcb->pc < last_index){
+        while (copy_pcb->pid != -100 && copy_pcb->pc < last_index){
             sprintf(key, "%d_%d", copy_pcb->pid, copy_pcb->pc);
             errCode = execute_instruction(key);
             copy_pcb->pc++;
@@ -47,12 +52,18 @@ int execute_AGING() {
 
     do {
         copy_pcb = dequeue();
+
+        if (copy_pcb ->pid == -100) {
+            // 1000 is an arbitrary large number to ensure all instructions
+            // possible are executed
+            executeBackgroundTask(1000);
+        }
         // To check if either head is bigger or we're done all the lines in the pcb
         // We have a ternary, basically if we're the last element in the queue it'll be empty
         // Thus causing an error, so we make head the same as copy_pcb if that's the case
         head = (ready_queue.head != NULL) ? ready_queue.head : copy_pcb;
         int last_index = copy_pcb->number_of_lines;
-        while ((copy_pcb->pc < last_index) && (copy_pcb->job_length_score <= head->job_length_score)){
+        while (copy_pcb->pid!= -100 && (copy_pcb->pc < last_index) && (copy_pcb->job_length_score <= head->job_length_score)){
             sprintf(key, "%d_%d", copy_pcb->pid, copy_pcb->pc);
             errCode = execute_instruction(key);
             copy_pcb->pc++;
@@ -150,7 +161,7 @@ void executeBackgroundTask(int count) {
     char userInput[MAX_USER_INPUT];
     char *tok;
     while(i < count && fgets(userInput, MAX_USER_INPUT-1, stdin) != NULL) {
-        // printf("the line being executed: %s\n", userInput);
+        printf("the line being executed: %s\n", userInput);
         for (tok = strtok(userInput, ";"); tok != NULL; tok = strtok(NULL, ";")) {
             errCode = parseInput(tok);
             if (errCode == -1) return;
