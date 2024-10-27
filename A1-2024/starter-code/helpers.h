@@ -1,8 +1,14 @@
 #include <dirent.h>
 
-int my_ls_filter(const struct dirent *namelist);
-int my_ls_sort(const struct dirent **namelist_one, const struct dirent **namelist_two);
-int check_alphanum(char *name);
-int generate_pid();
-int execute_instruction(char *key);
+#ifndef HELPERS_H
+#define HELPERS_H
+
+int myLsFilter(const struct dirent *namelist);
+int myLsSort(const struct dirent **namelist_one,
+               const struct dirent **namelist_two);
+int checkAlphanum(char *name);
+int generatePID();
+int executeInstruction(char *key);
 int isProperPolicy(char *policy);
+
+#endif

@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #ifndef PCB_H
 #define PCB_H
 
@@ -6,25 +8,27 @@ struct PCB {
     // Length of SCRIPT based on how many lines
     int number_of_lines;
     // Program counter (pc). Keeps track of instruction to execute.
-    // pc <= number_of_lines 
+    // pc will always be smaller or equal to number_of_lines
     int pc;
-    // Next PCB
+    // Pointer to next PCB 
     struct PCB *next;
-    // 1.2.4 Aging SJF job
+    // TODO: NEIL EXPLAIN
     int job_length_score;
 };
 
+// Linked-List data structure used as a queue
 struct READY_QUEUE {
     struct PCB *head;
 };
 
-extern struct READY_QUEUE ready_queue;
+// Global ready_queue -> extern. Declared in pcb.c
+extern struct READY_QUEUE readyQueue;
 struct PCB *createBackgroundPCB();
-struct PCB *instantiate_pcb(int pid, int number_of_lines);
+struct PCB *createPCB(FILE *fp);
+struct PCB *instantiatePCB(int pid, int number_of_lines);
 void enqueue(struct PCB *pcb);
-struct PCB *create_pcb(FILE *fp);
 struct PCB *dequeue();
-void free_pcb(struct PCB *pcb);
+void freePCB(struct PCB *pcb);
 void selectionSortQueue();
 void swap(struct PCB *min, struct PCB *current);
 void ageReadyQueue();
