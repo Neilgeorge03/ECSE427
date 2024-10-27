@@ -9,108 +9,111 @@
 #include <string.h>
 
 const char *ExecutionPolicy[] = {"FCFS", "SJF", "RR", "AGING", "RR30"};
-// 0 => single thread
-// 1 => multi thread (2 workers)
 int isMultithreadingMode = 0;
-int isBackgroundMode = 0;
 pthread_t thread1, thread2;
 pthread_mutex_t mutex;
 
-void executeBackgroundTask(int count);
+void executeBackgroundInstruction(int count);
 
 int executeFCFS() {
     int errCode;
-    struct PCB *copy_pcb;
+    struct PCB *copyPCB;
     char key[KEY_SIZE];
 
     do {
-        copy_pcb = dequeue();
+        copyPCB = dequeue();
 
-        int last_index = copy_pcb->number_of_lines;
-        if (copy_pcb->pid == -100) {
-            // 1000 is an arbitrary large number to ensure all instructions
-            // possible are executed
-            executeBackgroundTask(1000);
+        int last_index = copyPCB->number_of_lines;
+        if (copyPCB->pid == -100) {
+            // 1000 is an arbitrary large number to ensure all instructions 
+            // possible in stdin are executed. If it reaches the eof, it'll 
+            // simply stop executing furhter.
+            executeBackgroundInstruction(1000);
         }
 
         // pc here refers to "program counter"
-        while (copy_pcb->pid != -100 && copy_pcb->pc < last_index) {
-            sprintf(key, "%d_%d", copy_pcb->pid, copy_pcb->pc);
+        while (copyPCB->pid != -100 && copyPCB->pc < last_index) {
+            sprintf(key, "%d_%d", copyPCB->pid, copyPCB->pc);
             errCode = executeInstruction(key);
-            copy_pcb->pc++;
+            copyPCB->pc++;
         }
-        // important to free to remove from shell and computer memory
-        freePCB(copy_pcb);
+        // Important to free to remove instrcutions from shell memory 
+        // and PCB from computer memory
+        freePCB(copyPCB);
     } while (readyQueue.head != NULL);
     return errCode;
 }
 
+// TODO: NEIL EXPLAIN
 int executeAging() {
     int errCode;
-    struct PCB *copy_pcb, *head;
+    struct PCB *copyPCB, *head;
     char key[KEY_SIZE];
 
     do {
-        copy_pcb = dequeue();
+        copyPCB = dequeue();
 
-        if (copy_pcb->pid == -100) {
-            // 1000 is an arbitrary large number to ensure all instructions
-            // possible are executed
-            executeBackgroundTask(1000);
+        if (copyPCB->pid == -100) {
+            // 1000 is an arbitrary large number to ensure all instructions 
+            // possible in stdin are executed. If it reaches the eof, it'll 
+            // simply stop executing furhter.
+            executeBackgroundInstruction(1000);
         }
         // To check if either head is bigger or we're done all the lines in the
         // pcb We have a ternary, basically if we're the last element in the
         // queue it'll be empty Thus causing an error, so we make head the same
-        // as copy_pcb if that's the case
-        head = (readyQueue.head != NULL) ? readyQueue.head : copy_pcb;
-        int last_index = copy_pcb->number_of_lines;
-        while (copy_pcb->pid != -100 && (copy_pcb->pc < last_index) &&
-               (copy_pcb->job_length_score <= head->job_length_score)) {
-            sprintf(key, "%d_%d", copy_pcb->pid, copy_pcb->pc);
+        // as copyPCB if that's the case
+        head = (readyQueue.head != NULL) ? readyQueue.head : copyPCB;
+        int last_index = copyPCB->number_of_lines;
+        while (copyPCB->pid != -100 && (copyPCB->pc < last_index) &&
+               (copyPCB->job_length_score <= head->job_length_score)) {
+            sprintf(key, "%d_%d", copyPCB->pid, copyPCB->pc);
             errCode = executeInstruction(key);
-            copy_pcb->pc++;
+            copyPCB->pc++;
             ageReadyQueue();
         }
 
-        if (copy_pcb->pc == copy_pcb->number_of_lines) {
-            freePCB(copy_pcb);
+        if (copyPCB->pc == copyPCB->number_of_lines) {
+            freePCB(copyPCB);
         } else {
-            enqueue(copy_pcb);
+            enqueue(copyPCB);
             selectionSortQueue();
         }
     } while (readyQueue.head != NULL);
     return errCode;
 }
 
-void *worker_execute_RR(void *count_arg) {
+// Multithreaded worker function for executeRR 
+void *workerExecuteRR(void *count_arg) {
     int count = *((int *)count_arg);
-    struct PCB *copy_pcb;
+    struct PCB *copyPCB;
     char key[KEY_SIZE];
 
     while (readyQueue.head != NULL) {
+        // readyQueue is a shared ressource -> make sure dequeue
+        // enqueue happen once at a time otherwise may pick end up with 
+        // unexpected behaviour.
         pthread_mutex_lock(&mutex);
-        copy_pcb = dequeue();
+        copyPCB = dequeue();
         pthread_mutex_unlock(&mutex);
 
-        if (copy_pcb->pid == -100) {
-            executeBackgroundTask(count);
+        if (copyPCB->pid == -100) {
+            executeBackgroundInstruction(count);
         }
 
-        int last_index = copy_pcb->pc + count;
-        while (copy_pcb->pid != -100 && copy_pcb->pc < last_index &&
-               copy_pcb->pc < copy_pcb->number_of_lines) {
-            sprintf(key, "%d_%d", copy_pcb->pid, copy_pcb->pc);
+        int last_index = copyPCB->pc + count;
+        while (copyPCB->pid != -100 && copyPCB->pc < last_index &&
+               copyPCB->pc < copyPCB->number_of_lines) {
+            sprintf(key, "%d_%d", copyPCB->pid, copyPCB->pc);
             executeInstruction(key);
-            copy_pcb->pc++;
+            copyPCB->pc++;
         }
 
         pthread_mutex_lock(&mutex);
-        if (copy_pcb->pid != 100 && copy_pcb->pc != copy_pcb->number_of_lines) {
-            enqueue(copy_pcb);
+        if (copyPCB->pid != 100 && copyPCB->pc != copyPCB->number_of_lines) {
+            enqueue(copyPCB);
         } else {
-            // If the process block ends or if quit method is called
-            // threads must be joined
-            freePCB(copy_pcb);
+            freePCB(copyPCB);
         }
         pthread_mutex_unlock(&mutex);
     }
@@ -118,62 +121,66 @@ void *worker_execute_RR(void *count_arg) {
 }
 
 void executeRR(int count) {
+    struct PCB *copyPCB;
+    char key[KEY_SIZE];
+    int errCode;
+
     if (isMultithreadingMode) {
         int *count_arg = &count;
         pthread_mutex_init(&mutex, NULL);
-        pthread_create(&thread1, NULL, worker_execute_RR, count_arg);
-        pthread_create(&thread2, NULL, worker_execute_RR, count_arg);
+        pthread_create(&thread1, NULL, workerExecuteRR, count_arg);
+        pthread_create(&thread2, NULL, workerExecuteRR, count_arg);
 
         pthread_join(thread1, NULL);
         pthread_join(thread2, NULL);
         pthread_mutex_destroy(&mutex);
+        return;
 
-    } else {
-        struct PCB *copy_pcb;
-        char key[KEY_SIZE];
-        int errCode;
+    } 
 
-        while (readyQueue.head != NULL) {
-            copy_pcb = dequeue();
-            int last_index = copy_pcb->pc + count;
+    // Keep going until readyQueue is empty
+    while (readyQueue.head != NULL) {
+        copyPCB = dequeue();
+        int last_index = copyPCB->pc + count;
 
-            if (copy_pcb->pid == -100) {
-                executeBackgroundTask(count);
-            }
+        // Placeholder PCB reached -> execute background tasks
+        if (copyPCB->pid == -100) {
+            executeBackgroundInstruction(count);
+        }
 
-            // The condition makes sure that 1 - only a predetermined amount of
-            // instruction is run 2 - if it reaches the end, the loop stops and
-            // 3 - not a background execution
-            while (copy_pcb->pid != -100 && copy_pcb->pc < last_index &&
-                   copy_pcb->pc < copy_pcb->number_of_lines) {
-                sprintf(key, "%d_%d", copy_pcb->pid, copy_pcb->pc);
-                executeInstruction(key);
-                copy_pcb->pc++;
-            }
+        // The condition makes sure that: 
+        // 1 - only a predetermined amount of instructions is run 
+        // 2 - if it reaches the end, the loop stops and
+        // 3 - not a background PCB 
+        while (copyPCB->pid != -100 && copyPCB->pc < last_index &&
+                copyPCB->pc < copyPCB->number_of_lines) {
+            sprintf(key, "%d_%d", copyPCB->pid, copyPCB->pc);
+            executeInstruction(key);
+            copyPCB->pc++;
+        }
 
-            if (copy_pcb->pid != -100 &&
-                copy_pcb->pc == copy_pcb->number_of_lines) {
-                freePCB(copy_pcb);
-            } else {
-                enqueue(copy_pcb);
-            }
+        // TODO: Find out a way to clear the background PCB
+        if (copyPCB->pid != -100 &&
+            copyPCB->pc == copyPCB->number_of_lines) {
+            freePCB(copyPCB);
+        } else {
+            enqueue(copyPCB);
         }
     }
 }
 
-void executeBackgroundTask(int count) {
-    int i = 0;
+// If the BackgroundPCB is being executed, then we want the commands
+// to come from STDIN for the number of instructions the RR execution
+// policy is asking.
+void executeBackgroundInstruction(int count) {
     int errCode;
     char userInput[MAX_USER_INPUT];
-    char *tok;
-    while (i < count && fgets(userInput, MAX_USER_INPUT - 1, stdin) != NULL) {
-        for (tok = strtok(userInput, ";"); tok != NULL;
-             tok = strtok(NULL, ";")) {
-            errCode = parseInput(tok);
-            if (errCode == -1)
-                return;
-            memset(userInput, 0, sizeof(userInput));
-        }
-        i++;
+    for (int i = 0; i < count; i++) {
+        // If fgets returns NULL -> either no more lines, or EOF -> stop
+        if (fgets(userInput, MAX_USER_INPUT - 1, stdin) == NULL)
+            break;
+
+        errCode = parseInput(userInput);
+        if (errCode == -1) return;
     }
 }

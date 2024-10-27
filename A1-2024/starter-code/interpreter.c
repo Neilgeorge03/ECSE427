@@ -266,21 +266,23 @@ int print(char *var) {
 }
 
 int exec(char *arguments[], int argumentSize) {
-    // numOfOptionalSettings start at 1 and not 0 due to zero indexing. No other
-    // reason.
+    // numOfOptionalSettings start at 1 and not 0 due to zero indexing. No other reason.
     int numOfOptionalSettings = 1;
 
     // MT [optional] will always be the last argument. If it is, then in cases
     // when there is another optional argument ("#"), we need to keep track of
-    // the fact that there already exists an optional argument.
+    // the fact that there already exists an optional argument, and thus "#"
+    // not the last one
     if (strcmp(arguments[argumentSize - numOfOptionalSettings], "MT") == 0) {
         isMultithreadingMode = 1;
         numOfOptionalSettings++;
     }
 
     if (strcmp(arguments[argumentSize - numOfOptionalSettings], "#") == 0) {
-        isBackgroundMode = 1;
-        // empty pcb. if this pcb -> execute stdin instructions
+        // Creating empty PCB. This is a placeholder type of PCB that when
+        // the the readyQueue reaches this background PCB with PID = -100 
+        // (not possible to get -100 PID otherwise), it'll execute instructions
+        // from stdin
         createBackgroundPCB();
         numOfOptionalSettings++;
     }
@@ -316,10 +318,12 @@ int exec(char *arguments[], int argumentSize) {
         executeAging();
     }
 
+    // 2 -> Round Robin algorithm switching after 2 instructions
     else if (strcmp(policy, "RR") == 0) {
         executeRR(2);
     }
 
+    // 30 -> Round Robin algorithm switching after 30 instructions
     else if (strcmp(policy, "RR30") == 0) {
         executeRR(30);
     }
@@ -337,6 +341,7 @@ int run(char *script) {
     struct PCB *pcb = createPCB(fp);
     fclose(fp);
 
+    // Just need to execute everything sequentially, thus FCFS is sufficient
     executeFCFS();
 
     return 0;

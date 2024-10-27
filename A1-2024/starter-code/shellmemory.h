@@ -12,6 +12,5 @@ char *mem_get_value(char *var);
 void mem_set_value(char *var, char *value);
 int loadScriptInMemory(FILE *fp, int pid);
 int clearMemory(int pid, int length);
-void printMemory();
 
 #endif

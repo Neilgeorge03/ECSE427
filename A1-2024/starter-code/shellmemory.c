@@ -68,6 +68,9 @@ char *mem_get_value(char *var_in) {
     return "Variable does not exist";
 }
 
+// Loads script (pointer at by fp) into shell memory
+// returns the number of lines that it has stored using 
+// the key "pid_%d" when %d is [0, num of instructions)
 int loadScriptInMemory(FILE *fp, int pid) {
     char line[MAX_USER_INPUT];
     char key[KEY_SIZE];
@@ -116,11 +119,4 @@ int clearMemory(int pid, int length) {
         }
     }
     return 1;
-}
-
-void printMemory() {
-    for (int i = 0; i < 350; i++) {
-        printf("shellmemory[%d] var value: %s %s\n", i, shellmemory[i].var,
-               shellmemory[i].value);
-    }
 }

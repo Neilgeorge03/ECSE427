@@ -73,8 +73,10 @@ int generatePID() { return UNIQUE_PID++; }
 int executeInstruction(char *key) {
     char *instruction = mem_get_value(key);
     int errCode = parseInput(instruction);
-    if (errCode == -1)
-        return 99;
+    if (errCode == -1) {
+        printf("Fatal error during instruction execution occured.\n");
+        return -1;
+    }
     return 0;
 }
 

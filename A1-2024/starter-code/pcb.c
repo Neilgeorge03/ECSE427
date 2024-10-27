@@ -51,7 +51,8 @@ struct PCB *createBackgroundPCB() {
 }
 
 void enqueue(struct PCB *pcb) {
-    // make sure added job is in the tail
+    // Ensure that added job's (the tail's) next pointer
+    // is NULL to avoid cycles. 
     pcb->next = NULL;
     if (readyQueue.head == NULL) {
         readyQueue.head = pcb;
@@ -64,6 +65,8 @@ void enqueue(struct PCB *pcb) {
     }
 }
 
+// Used for background execution as stdin commands
+// get priority in readyQueue -> enqueue in head.
 void enqueueHead(struct PCB *pcb) {
     if (readyQueue.head == NULL) {
         readyQueue.head = pcb;
@@ -73,6 +76,7 @@ void enqueueHead(struct PCB *pcb) {
     }
 }
 
+// Dequeues from the head.
 struct PCB *dequeue() {
     if (readyQueue.head == NULL) {
         return NULL;
@@ -88,6 +92,7 @@ void freePCB(struct PCB *pcb) {
     sprintf(key, "%d_0", pcb->pid);
     char *checkValue = mem_get_value(key);
 
+    // If variable has already been cleared, no need to clear again.
     if (strcmp(checkValue, "Variable does not exist") != 0) {
         if (clearMemory(pcb->pid, pcb->number_of_lines) != 0) {
             perror("Unable to clear memory.");
@@ -151,6 +156,7 @@ void selectionSortQueue() {
     }
 }
 
+// TODO: NEIL EXPLAIN 
 void ageReadyQueue() {
     if (readyQueue.head == NULL)
         return;
