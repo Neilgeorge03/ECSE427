@@ -15,9 +15,7 @@
 
 int MAX_ARGS_SIZE = 1000;
 struct stat s;
-bool isBackground = false;
 char *policy;
-bool runningBackground = false;
 
 int help();
 int quit();
@@ -55,10 +53,8 @@ int interpreter(char* command_args[], int args_size) {
     for (i = 0; i < args_size; i++) { // terminate args at newlines
         command_args[i][strcspn(command_args[i], "\r\n")] = 0;
     }
-    if (isBackground){
-        addBackgroundCommands(command_args, args_size);
-    }
-    else if (strcmp(command_args[0], "help") == 0){
+
+    if (strcmp(command_args[0], "help") == 0){
         if (args_size != 1) return badcommand();
         return help();
 
@@ -175,12 +171,14 @@ int my_touch(char *filename) {
 }
 
 int quit() {
+    puts("hello quits\n");
     // If it's in MT mode, and a "quit" has been called while 
     // ready_queue is not empty => join the threads. 
     if (isMultithreadingMode && ready_queue.head != NULL) {
        pthread_join(thread1, NULL);
        pthread_join(thread2, NULL);
        pthread_mutex_destroy(&mutex);
+       isMultithreadingMode = 0;
     }
 
     printf("Bye!\n");
@@ -261,37 +259,6 @@ int print(char *var) {
     return 0;
 }
 
-void runBackground(){
-    isBackground = false;
-    runningBackground = true;
-    if (strcmp(policy, "FCFS") == 0) {
-        execute_FCFS();
-    } else if (strcmp(policy, "SJF") == 0) {
-        execute_FCFS();
-    } else if (strcmp(policy,"RR") == 0) {
-        execute_RR(2);
-    } else if (strcmp(policy, "AGING") == 0) {
-        selectionSortQueue();
-        execute_AGING();
-    } else if (strcmp(policy, "RR30") == 0) {
-        execute_RR(30);
-    }
-    return;
-}
-
-void addBackgroundCommands(char* command_args[], int argsLength) {
-    char command[100]; // Ensure this is large enough
-    command[0] = '\0'; // Initialize the string to be empty
-
-    for (int i = 0; i < argsLength; i++) {
-        strcat(command, command_args[i]);
-        if (i < argsLength - 1) {
-            strcat(command, " "); // Add a space after each string except the last
-        }
-    }
-    addPCBForegroundCommand(command);
-}
-
 int exec(char *arguments[], int argumentSize) {
     // numOfOptionalSettings start at 1 and not 0 due to zero indexing. No other reason.
     int numOfOptionalSettings = 1;
@@ -305,8 +272,9 @@ int exec(char *arguments[], int argumentSize) {
     }
 
     if (strcmp(arguments[argumentSize - numOfOptionalSettings], "#") == 0) {
-        isBackground = true;
-        createEmptyPCB();
+        isBackgroundMode = 1;
+        // empty pcb. if this pcb -> execute stdin instructions
+        createBackgroundPCB(); 
         numOfOptionalSettings++;
     }
 
@@ -318,21 +286,16 @@ int exec(char *arguments[], int argumentSize) {
 
     // Load files into Shell memory and create PCBs
     for (int i = 1; i < argumentSize - numOfOptionalSettings; i++) {
-            FILE *fp = fopen(arguments[i], "rt");
-            if (fp == NULL) {
-                printf("Failed to open file.\n");
-                return 3;
-            }
-
-            create_pcb(fp);
-            fclose(fp);
+        FILE *fp = fopen(arguments[i], "rt");
+        if (fp == NULL) {
+            printf("Failed to open file.\n");
+            return 3;
+        }
+        create_pcb(fp);
+        fclose(fp);
     }
 
-    if (isBackground || runningBackground){
-        return 0;
-    }
-
-    else if (strcmp(policy, "FCFS") == 0) {
+    if (strcmp(policy, "FCFS") == 0) {
        execute_FCFS();
     }
 

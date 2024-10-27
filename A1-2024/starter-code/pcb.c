@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "pcb.h"
 #include "shellmemory.h"
 #include "helpers.h"
 
 struct READY_QUEUE ready_queue = {NULL};
+
+void enqueueHead(struct PCB *pcb);
 
 // this method creates the process control block for a script beginning with key
 // {pid}_0 set by the method set_value in shellmemory.h.
@@ -32,17 +35,19 @@ struct PCB *create_pcb(FILE *fp) {
     return instantiate_pcb(pid, number_of_lines);
 }
 
-struct PCB *createEmptyPCB() {
-    int pid = generate_pid();
-    int number_of_lines = 0;
-    return instantiate_pcb(pid, number_of_lines);
-}
+struct PCB *createBackgroundPCB() {
+    struct PCB *pcb = (struct PCB*)malloc(sizeof(struct PCB));
+    if(!pcb) {
+        printf("Failed to allocate memory for PCB.\n");
+        return NULL;
+    }
 
-void addPCBForegroundCommand(char *commandString) {
-    struct PCB *current = ready_queue.head;
-    loadCommandInMemory(commandString, current->number_of_lines, current->pid);
-    current->job_length_score++;
-    current->number_of_lines++;
+    // this is a placeholder to know this is a background pcb.
+    pcb->pid = -100;
+    pcb->next = NULL;
+    enqueueHead(pcb);
+
+    return pcb;
 }
 
 void enqueue(struct PCB *pcb) {
@@ -79,11 +84,18 @@ struct PCB *dequeue() {
 }
 
 void free_pcb(struct PCB *pcb) {
-    if (clear_mem(pcb->pid, pcb->number_of_lines) != 0){
-        perror("Unable to clear memory.");
-        return;
-    };
-    free(pcb);
+    printf("the pid is %d\n", pcb->pid);
+    char key[KEY_SIZE];
+    sprintf(key, "%d_0", pcb->pid);
+    char *checkValue = mem_get_value(key);
+
+    if (strcmp(checkValue, "Variable does not exist") != 0) {
+        if (clear_mem(pcb->pid, pcb->number_of_lines) != 0){
+            perror("Unable to clear memory.");
+            return;
+        };
+        free(pcb);
+    }
 }
 
 void swap(struct PCB *min, struct PCB *current) {
