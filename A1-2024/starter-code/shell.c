@@ -85,5 +85,11 @@ int parseInput(char inp[]) {
         ix++;
     }
     errorCode = interpreter(words, w);
+
+    // Freeing memory to avoid memory leaks
+     for (int i = 0; i < w; i++) {
+        free(words[i]);
+    }
+
     return errorCode;
 }

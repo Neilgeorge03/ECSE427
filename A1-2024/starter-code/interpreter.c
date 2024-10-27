@@ -185,9 +185,20 @@ int quit() {
         pthread_join(thread2, NULL);
         pthread_mutex_destroy(&mutex);
         isMultithreadingMode = 0;
+        printf("Bye!\n");
+        return 0;
+    }
+    else
+        printf("Bye!\n");
+
+    // In case background PCB has not been cleared, or some PCB has been left out
+    // from memory clear
+    while (readyQueue.head != NULL) {
+        struct PCB *copyHead = readyQueue.head;
+        freePCB(copyHead);
+        readyQueue.head = copyHead->next; 
     }
 
-    printf("Bye!\n");
     exit(0);
 }
 
