@@ -44,13 +44,13 @@ int executeFCFS() {
     return errCode;
 }
 
-// TODO: NEIL EXPLAIN
 int executeAging() {
     int errCode;
     struct PCB *copyPCB, *head;
     char key[KEY_SIZE];
 
     do {
+        // Do the jobs
         copyPCB = dequeue();
 
         if (copyPCB->pid == -100) {
@@ -59,23 +59,28 @@ int executeAging() {
             // simply stop executing furhter.
             executeBackgroundInstruction(1000);
         }
-        // To check if either head is bigger or we're done all the lines in the
-        // pcb We have a ternary, basically if we're the last element in the
-        // queue it'll be empty Thus causing an error, so we make head the same
-        // as copyPCB if that's the case
+        // Check if head exists, if it does then we can make head as readyQueue
+        // If it doesn't exist then we can use the current node as to compare further down in the program
         head = (readyQueue.head != NULL) ? readyQueue.head : copyPCB;
+
         int last_index = copyPCB->number_of_lines;
         while (copyPCB->pid != -100 && (copyPCB->pc < last_index) &&
                (copyPCB->job_length_score <= head->job_length_score)) {
+            // Itereate through the commands of the PCB
+            // we check if the current head of the queue and the current dequeued should switch by comparing the score
             sprintf(key, "%d_%d", copyPCB->pid, copyPCB->pc);
+            // Execute code
             errCode = executeInstruction(key);
             copyPCB->pc++;
+            // age the queue elements
             ageReadyQueue();
         }
 
         if (copyPCB->pc == copyPCB->number_of_lines) {
+            // If completed we can free the PCB
             freePCB(copyPCB);
         } else {
+            // We need to re-enqueue the PCB and sort it again to make sure it's in ascending order
             enqueue(copyPCB);
             selectionSortQueue();
         }

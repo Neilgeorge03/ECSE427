@@ -12,7 +12,8 @@ struct PCB {
     int pc;
     // Pointer to next PCB 
     struct PCB *next;
-    // TODO: NEIL EXPLAIN
+    // Score is equal to number_of_lines when the program starts, we decrement it in aging
+    // can't go lower than 0 but it's used to sort the PCB
     int job_length_score;
 };
 

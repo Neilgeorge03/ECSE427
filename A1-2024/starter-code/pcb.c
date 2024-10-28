@@ -116,12 +116,14 @@ void swap(struct PCB *min, struct PCB *current) {
     int tempPC = min->pc;
 
     // Perform the swap
+    // Min nodes gets the values of the current node (iterates from the head to the end)
     min->pid = current->pid;
     min->job_length_score = current->job_length_score;
     min->number_of_lines = current->number_of_lines;
     min->pc = current->pc;
 
     // Use temp data to put back inside
+    // Current node gets value from the min node
     current->pid = tempPID;
     current->job_length_score = tempScore;
     current->number_of_lines = tempNOL;
@@ -137,7 +139,8 @@ void selectionSortQueue() {
     current = readyQueue.head; // what we'll use to iterate through the queue
 
     while (current != NULL) {
-        min = current; // Initial min is the first element in the queue
+        min = current; // min is the left most element
+        // If current != head it means that we know the elements left of current is smaller
         next = current->next;
 
         while (next != NULL) {
@@ -151,17 +154,19 @@ void selectionSortQueue() {
         if (min != current) { // switching the nodes if it's not in order
             swap(min, current);
         }
-        current =
-            current->next; // iterate to the next node after swap if it occured
+        current = current->next;    // iterate to the next node since we know current
+                                    // is sorted, so we can move to the
+                                    // next one
     }
 }
 
-// TODO: NEIL EXPLAIN 
 void ageReadyQueue() {
     if (readyQueue.head == NULL)
         return;
     struct PCB *current = readyQueue.head;
-
+    // Since we dequeued the head we know we can age every element in the queue
+    // We iterate through the queue and decrement each job_length_score by 1
+    // If the score is = 0, we can keep it as is and iterate to the next node
     while (current != NULL) {
         if (current->job_length_score != 0) {
             current->job_length_score--;
