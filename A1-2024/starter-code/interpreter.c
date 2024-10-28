@@ -195,8 +195,8 @@ int quit() {
     // from memory clear
     while (readyQueue.head != NULL) {
         struct PCB *copyHead = readyQueue.head;
-        freePCB(copyHead);
         readyQueue.head = copyHead->next; 
+        freePCB(copyHead);
     }
 
     exit(0);
