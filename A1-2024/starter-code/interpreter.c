@@ -16,6 +16,7 @@
 int MAX_ARGS_SIZE = 1000;
 struct stat s;
 char *policy;
+int isQuitJoinThreads = 0;
 
 int help();
 int quit();
@@ -179,26 +180,17 @@ int my_touch(char *filename) {
 
 int quit() {
     // If it's in MT mode, and a "quit" has been called while
-    // ready_queue is not empty => join the threads.
+    // ready_queue is not empty => join the threads. The join and
+    // the exit will be executed in the scheduler.c using the global
+    // variable isQuitJoinThreads because if a pthread_join is called
+    // here, it may create a deadlock between both join locations.
     if (isMultithreadingMode && readyQueue.head != NULL) {
-        pthread_join(thread1, NULL);
-        pthread_join(thread2, NULL);
-        pthread_mutex_destroy(&mutex);
-        isMultithreadingMode = 0;
         printf("Bye!\n");
+        isQuitJoinThreads = 1; 
         return 0;
     }
-    else
-        printf("Bye!\n");
 
-    // In case background PCB has not been cleared, or some PCB has been left out
-    // from memory clear
-    while (readyQueue.head != NULL) {
-        struct PCB *copyHead = readyQueue.head;
-        readyQueue.head = copyHead->next; 
-        freePCB(copyHead);
-    }
-
+    printf("Bye!\n");
     exit(0);
 }
 

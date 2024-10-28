@@ -134,8 +134,9 @@ void executeRR(int count) {
         pthread_join(thread1, NULL);
         pthread_join(thread2, NULL);
         pthread_mutex_destroy(&mutex);
-        return;
 
+        if (isQuitJoinThreads == 1) 
+            exit(0);
     } 
 
     // Keep going until readyQueue is empty
