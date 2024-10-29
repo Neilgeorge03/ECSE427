@@ -311,7 +311,7 @@ int exec(char *arguments[], int argumentSize) {
         executeFCFS();
     }
 
-    // Main difference between FCFS and SJF is SJF has their nodes sorted while regular FCFS doens't
+    // Main difference between FCFS and SJF is SJF has their nodes sorted while regular FCFS doesn't.
     // Once sorted they share the same logic
     else if (strcmp(policy, "SJF") == 0) {
         selectionSortQueue();

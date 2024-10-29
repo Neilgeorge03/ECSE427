@@ -140,8 +140,18 @@ void executeRR(int count) {
         pthread_join(thread2, NULL);
         pthread_mutex_destroy(&mutex);
 
-        if (isQuitJoinThreads == 1) 
+        if (isQuitJoinThreads == 1) {
+            // In case not all PCB has been cleared (such as the background PCB)
+            while (readyQueue.head != NULL) {
+                struct PCB *pcb = readyQueue.head;
+                readyQueue.head = pcb->next;
+                freePCB(pcb);
+            }
+
+            // Exit is called here because if all threads are terminated
+            // and quit was called, it'll exit successfully here.
             exit(0);
+        }
     } 
 
     // Keep going until readyQueue is empty
@@ -165,13 +175,19 @@ void executeRR(int count) {
             copyPCB->pc++;
         }
 
-        // TODO: Find out a way to clear the background PCB
         if (copyPCB->pid != -100 &&
             copyPCB->pc == copyPCB->number_of_lines) {
             freePCB(copyPCB);
         } else {
             enqueue(copyPCB);
         }
+    }
+
+    // In case not all PCBs has been cleared (such as the background PCB)
+    while (readyQueue.head != NULL) {
+        struct PCB *pcb = readyQueue.head;
+        readyQueue.head = pcb->next;
+        freePCB(pcb);
     }
 }
 
