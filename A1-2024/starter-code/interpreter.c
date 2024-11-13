@@ -213,7 +213,7 @@ int my_mkdir(char *folder) {
         return 3;
     }
 
-    if (mkdir(folder, 0755) == 0)
+    if (mkdir(folder, 0777) == 0)
         return 0;
     printf("Bad command: my_mkdir\n");
     return 3;

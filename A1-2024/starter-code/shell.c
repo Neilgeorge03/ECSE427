@@ -9,6 +9,77 @@
 int parseInput(char ui[]);
 int is_interactive_mode();
 
+int clearBackingStoreDirectory(const char *dirLocation) {
+    if (chdir(dirLocation) != 0) {
+        perror("Unable to change directory");
+        return -1;
+    }
+
+    struct dirent **namelist;
+    int no_of_entries, i;
+
+    no_of_entries = scandir(".", &namelist, NULL, alphasort);
+    if (no_of_entries < 0) {
+        printf("scandir error");
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = 0; i < no_of_entries; i++) {
+        // Skip "." and ".." entries
+        if (strcmp(namelist[i]->d_name, ".") == 0 || strcmp(namelist[i]->d_name, "..") == 0) {
+            free(namelist[i]);
+            continue;
+        }
+
+        // Attempt to remove the file
+        if (remove(namelist[i]->d_name) == 0) {
+            printf("Removed: %s\n", namelist[i]->d_name);
+        } else {
+            printf("scandir error");
+            return -1;
+        }
+        free(namelist[i]); // Free memory allocated by scandir
+    }
+
+    free(namelist); // Free the array of directory entries
+
+    return 0;
+}
+
+// Function to create the backing store directory
+int createBackingStoreDirectory(const char *dirLocation) {
+    // Check if the directory already exists
+    struct stat st = {0};
+    if (stat(dirLocation, &st) == -1) {
+        if (mkdir(dirLocation, 0777) == 0) {
+            return 0;
+        } else {
+            return -1;
+        }
+    } else {
+        // In case directory exists, we need to erase its contents
+        clearBackingStoreDirectory(dir_path);
+        return 0;
+    }
+}
+
+// Delete the backing store when quitting
+int deleteBackingStoreDirectory(const char *dirLocation) {
+    if (clearBackingStoreDirectory(dirLocation) == -1){
+        return -1;
+    }
+    if (rmdir(dirLocation) == 0) {
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+
+
+
+
+
 // Start of everything
 int main(int argc, char *argv[]) {
     printf("Shell version 1.3 created September 2024\n\n");
