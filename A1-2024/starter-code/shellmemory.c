@@ -4,12 +4,27 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define BACKING_STORE "backingStore"
+#define FRAME_STORE_SIZE 30;
+#define VARIABLE_STORE_SIZE 10;
+#define MAX_PROCESSES 100;
+#define FRAME_SIZE 3;
+
+int processCount = 0;
+
 struct memory_struct {
     char *var;
     char *value;
 };
+struct sharedProcess {
+    char *processName;
+    int count;
+};
 
 struct memory_struct shellmemory[MEM_SIZE];
+struct memory_struct variableStore[VARIABLE_STORE_SIZE];
+struct sharedProcess processTable[MAX_PROCESSES];
+char* frameStore[FRAME_STORE_SIZE];
 
 // Helper functions
 int match(char *model, char *var) {
@@ -53,9 +68,32 @@ void mem_set_value(char *var_in, char *value_in) {
             return;
         }
     }
-
     return;
 }
+
+void variable_set_value(char *var_in, char *value_in) {
+    int i;
+
+    for (i = 0; i < VARIABLE_STORE_SIZE ;
+    i++) {
+        if (strcmp(variableStore[i].var, var_in) == 0) {
+            variableStore[i].value = strdup(value_in);
+            return;
+        }
+    }
+
+    // Value does not exist, need to find a free spot.
+    for (i = 0; i < VARIABLE_STORE_SIZE ;
+    i++) {
+        if (strcmp(variableStore[i].var, "none") == 0) {
+            variableStore[i].var = strdup(var_in);
+            variableStore[i].value = strdup(value_in);
+            return;
+        }
+    }
+    return;
+}
+
 
 // get value based on input key
 char *mem_get_value(char *var_in) {
@@ -66,6 +104,16 @@ char *mem_get_value(char *var_in) {
         }
     }
     return "Variable does not exist";
+}
+
+char *variable_get_value(char *var_in) {
+    int i;
+    for (i = 0; i < VARIABLE_STORE_SIZE; i++) {
+        if (strcmp(variableStore[i].var, var_in) == 0) {
+            return strdup(variableStore[i].value);
+        }
+    }
+    return NULL;
 }
 
 // Loads script (pointer at by fp) into shell memory
@@ -120,3 +168,113 @@ int clearMemory(int pid, int length) {
     }
     return 1;
 }
+
+
+
+void initBackingStore(){
+    char filePath[256];
+    DIR *dir = opendir(BACKING_STORE);
+    if (dir){
+        // means backing store exists
+        struct dirent *dirEntry;
+        while ((dirEntry = readdir(dir)) != NULL){
+            if (strcmp(dirEntry->d_name, ".") != 0 && strcmp(dirEntry->d_name, "..") != 0){
+                snprintf(filePath, sizeof(filePath), "%s/%s", BACKING_STORE, dirEntry->d_name);
+                remove(filePath);
+            }
+        }
+        closedir(dir);
+    } else {
+        mkdir(BACKING_STORE, 0777);
+    }
+}
+void delBackingStore(){
+    char filePath[256];
+    DIR *dir = opendir(BACKING_STORE);
+    if (dir){
+        // means backing store exists
+        struct dirent *dirEntry;
+        while ((dirEntry = readdir(dir)) != NULL){
+            if (strcmp(dirEntry->d_name, ".") != 0 && strcmp(dirEntry->d_name, "..") != 0){
+                snprintf(filePath, sizeof(filePath), "%s/%s", BACKING_STORE, dirEntry->d_name);
+                remove(filePath);
+            }
+        }
+        closedir(dir);
+    }
+    rmdir(BACKING_STORE);
+}
+
+int checkScriptLoaded(char *scriptName){
+    for (int i = 0; i < processTable; i++){
+        if (strcmp(processTable[i].processName, scriptName) == 0){
+            return i;
+        }
+    }
+    return -1;
+}
+
+int loadScriptSharedMemory(char *scriptName){
+    int index = checkScriptLoaded(scriptName);
+    if (index != -1){
+        processTable[index].count++;
+        return 0;
+    }
+
+    if (processCount > MAX_PROCESSES){
+        printf("Process table is full, can't add any new processes.");
+        return -1
+    }
+    sharedProcess newSharedProcess = &processTable[processCount++];
+    strcpy(newSharedProcess.processName, scriptName);
+    newSharedProcess.count = 1;
+    return 0;
+}
+
+void initFrameStore(){
+    for (int i = 0; i < FRAME_STORE_SIZE; i++){
+        strcpy(frameStore[i], "");
+    }
+}
+
+int getFreeFrame(){
+    for (int i = 0; i < FRAME_STORE_SIZE; i += FRAME_SIZE){
+        if (strcmp(frameStore[i], "")){
+            return i;
+        }
+    }
+}
+
+void deleteFrame(int frameIndex){
+    if (offset < 0 || frameIndex > (FRAME_STORE_SIZE/FRAME_SIZE)){
+        printf("Error: line index incorrect");
+        return;
+    } else if (offset < 0 || offset > FRAME_SIZE){
+        printf("Error: offset incorrect");
+        return;
+    }
+    for (int i = 0; i < FRAME_SIZE; i++){
+        strcpy(frameStore[i + frameIndex * FRAME_SIZE], "");
+    }
+}
+
+char* getLine(int frameIndex, int offset){
+    if (offset < 0 || frameIndex > (FRAME_STORE_SIZE/FRAME_SIZE)){
+        printf("Error: line index incorrect");
+        return NULL;
+    } else if (offset < 0 || offset > FRAME_SIZE){
+        printf("Error: offset incorrect");
+        return NULL;
+    }
+    return frameStore[frameIndex * FRAME_SIZE + offset];
+}
+
+
+// TODO
+void loadScriptBackingStore(const char* scriptName){
+
+}
+
+// TODO
+// Load page into frame store,
+void loadPageFrameStore
