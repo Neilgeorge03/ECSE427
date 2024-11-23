@@ -4,11 +4,25 @@
 #include <stdlib.h>
 #include <string.h>
 
+int VARIABLE_FRAME;
+int VARIABLE_LINE;
+
 struct memory_struct {
     char *var;
     char *value;
 };
+typedef struct {
+    int base;       // Base address of the memory
+    int end;    // Size of the memory block
+    int scriptCount;    // Reference count for shared memory
+} memoryAllocation;
 
+typedef struct {
+    char scriptName[50];
+    memoryAllocation memoryLocation;
+};
+
+SharedMemoryTable sharedMemoryTable[100];
 struct memory_struct shellmemory[MEM_SIZE];
 
 // Helper functions
@@ -25,14 +39,49 @@ int match(char *model, char *var) {
 }
 
 // Shell memory functions
-
 void mem_init() {
     int i;
     for (i = 0; i < MEM_SIZE; i++) {
         shellmemory[i].var = "none";
         shellmemory[i].value = "none";
     }
+    VARIABLE_FRAME = 0;
+    VARIABLE_LINE = 0;
 }
+
+int variableFramePartitioning(char* dirLocation, )
+
+int findScript(char* scriptName){
+    for (int i = 0; i < 100; i++){
+        if (strcmp(sharedMemoryTable[i].scriptName, scriptName) == 0)
+            return i;
+        }
+    }
+    return -1;
+}
+
+int loadScript(char* scriptName, int numLines){
+    int index = findScript(scriptName);
+    if (index != -1){
+        sharedMemoryTable[index].memoryLocation.scriptCount++;
+        return 0;
+    }
+    for (int i = 0; i < 100; i++){
+        if (sharedMemoryTable[i] == null){
+            strcmp(sharedMemoryTable[i].scriptName, scriptName);
+            if (i == 0){
+                sharedMemoryTable[i].memoryLocation.base = 0;
+            } else{
+                sharedMemoryTable[i].memoryLocation.base = sharedMemoryTable[i-1].memoryLocation.end;
+            }
+            sharedMemoryTable[i].memoryLocation.end = sharedMemoryTable[i].memoryLocation.base + numLines;
+            sharedMemoryTable[i].memoryLocation.scriptCount = 1;
+            return 0;
+        }
+    }
+    return -1;
+}
+
 
 // Set key value pair
 void mem_set_value(char *var_in, char *value_in) {

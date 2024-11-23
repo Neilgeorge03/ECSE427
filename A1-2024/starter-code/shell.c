@@ -9,6 +9,7 @@
 int parseInput(char ui[]);
 int is_interactive_mode();
 
+
 int clearBackingStoreDirectory(const char *dirLocation) {
     if (chdir(dirLocation) != 0) {
         perror("Unable to change directory");
@@ -96,6 +97,7 @@ int main(int argc, char *argv[]) {
 
     // init shell memory
     mem_init();
+    createBackingStoreDirectory()
     while (1) {
         if (is_interactive_mode()) {
             printf("%c ", prompt);

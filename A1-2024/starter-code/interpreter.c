@@ -189,7 +189,7 @@ int quit() {
         isQuitJoinThreads = 1; 
         return 0;
     }
-
+    deleteBackingStoreDirectory()
     printf("Bye!\n");
     exit(0);
 }
