@@ -173,8 +173,8 @@ void executeRR(int count) {
         // 3 - not a background PCB 
         while (copyPCB->pid != -100 && copyPCB->pc < last_index &&
                 copyPCB->pc < copyPCB->number_of_lines) {
-            pageNumber = copyPCB->number_of_lines/3
-            offset = copyPCB->number_of_lines%FRAME_SIZE;
+            pageNumber = (copyPCB->number_of_lines/FRAME_SIZE);
+            offset = (copyPCB->number_of_lines%FRAME_SIZE);
             index = copyPCB->pageTable[pageNumber];
             executePagingInstruction(index, offset);
             copyPCB->pc++;

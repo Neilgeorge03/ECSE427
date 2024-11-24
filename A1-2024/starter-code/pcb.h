@@ -1,7 +1,11 @@
+#include "shell.h"
 #include <stdio.h>
 
 #ifndef PCB_H
 #define PCB_H
+
+#define FRAME_SIZE 3
+#define FRAME_STORE_SIZE 30
 
 struct PCB {
     int pid;
@@ -18,10 +22,6 @@ struct PCB {
     int pageTable[(FRAME_STORE_SIZE / FRAME_SIZE)];
     char scriptName[100];
 };
-struct pagingReturn {
-    int numberLines;
-    int pageTable[(FRAME_STORE_SIZE / FRAME_SIZE)];
-};
 
 // Linked-List data structure used as a queue
 struct READY_QUEUE {
@@ -31,13 +31,16 @@ struct READY_QUEUE {
 // Global ready_queue -> extern. Declared in pcb.c
 extern struct READY_QUEUE readyQueue;
 struct PCB *createBackgroundPCB();
-struct PCB *createPCB(FILE *fp, struct pagingReturn *returnPage);
+struct PCB *createPCB(FILE *fp);
+struct PCB *createFramePCB(FILE *fp, struct pagingReturn *returnPage);
 struct PCB *createDuplicatePCB(char* fileName);
-struct PCB *instantiatePCB(int pid, struct pagingReturn *returnPage);
+struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage);
+struct PCB *instantiatePCB(int pid, int numberLines);
 void enqueue(struct PCB *pcb);
 struct PCB *dequeue();
 void freePCB(struct PCB *pcb);
 void selectionSortQueue();
+void addScriptName(struct PCB *pcb, char* scriptName);
 void swap(struct PCB *min, struct PCB *current);
 void ageReadyQueue();
 

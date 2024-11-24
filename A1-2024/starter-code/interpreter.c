@@ -298,17 +298,23 @@ int exec(char *arguments[], int argumentSize) {
 
     // Load files into Shell memory and create PCBs
     for (int i = 1; i < argumentSize - numOfOptionalSettings; i++) {
+        struct PCB* pcb;
         FILE *fp = fopen(arguments[i], "rt");
         if (fp == NULL) {
             printf("Failed to open file.\n");
             return 3;
         }
-        if (loadScriptSharedMemory(arguments[i]) == 1){
-            createDuplicatePCB(arguments[i]);
-        }else {
-            struct pagingReturn *returnPage = loadScriptBackingStore(BACKING_STORE, arguments[i], fp);
-            createPCB(fp, returnPage);
+        if (strcmp(policy, "RR") == 0){
+            if (loadScriptSharedMemory(arguments[i]) == 1) {
+                pcb = createDuplicatePCB(arguments[i]);
+            } else {
+                struct pagingReturn *returnPage = loadScriptBackingStore(BACKING_STORE, arguments[i], fp);
+                pcb = createFramePCB(fp, returnPage);
+            }
+        } else {
+            createPCB(fp);
         }
+        addScriptName(pcb, arguments[i]);
         fclose(fp);
     }
 

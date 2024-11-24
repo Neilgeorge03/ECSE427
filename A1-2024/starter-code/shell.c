@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <dirent.h>     // For directory operations (opendir, readdir, closedir)
+#include <sys/stat.h>   // For mkdir
+#include <sys/types.h>  // For types used by mkdir and other file-related operations
 
 int parseInput(char ui[]);
 int is_interactive_mode();
@@ -153,7 +156,7 @@ struct pagingReturn *loadScriptBackingStore(char* dirName, char* scriptName, FIL
 
             if (frameIndex == -1){
                 printf("No free frame available\n");
-                return;
+                return NULL;
             }
             if (backingStoreFile != NULL){
                 fclose(backingStoreFile);
@@ -165,7 +168,7 @@ struct pagingReturn *loadScriptBackingStore(char* dirName, char* scriptName, FIL
 
             if (backingStoreFile == NULL){
                 printf("Error: failed to create backing store file");
-                return;
+                return NULL;
             }
 
             pageReturn->pageTable[pageTableIndex++] = frameIndex;

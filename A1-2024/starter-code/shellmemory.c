@@ -9,7 +9,7 @@ int processCount = 0;
 
 struct memory_struct shellmemory[MEM_SIZE];
 struct memory_struct variableStore[VARIABLE_STORE_SIZE];
-struct sharedProcess processTable[MAX_PROCESSES];
+struct sharedProcess *processTable[MAX_PROCESSES];
 char* frameStore[FRAME_STORE_SIZE];
 
 // Helper functions
@@ -159,7 +159,7 @@ int clearMemory(int pid, int length) {
 
 int checkScriptLoaded(char *scriptName){
     for (int i = 0; i < MAX_PROCESSES; i++){
-        if (strcmp(processTable[i].processName, scriptName) == 0){
+        if (strcmp(processTable[i]->processName, scriptName) == 0){
             return i;
         }
     }
@@ -169,30 +169,33 @@ int checkScriptLoaded(char *scriptName){
 int loadScriptSharedMemory(char *scriptName){
     int index = checkScriptLoaded(scriptName);
     if (index != -1){
-        processTable[index].count++;
+        processTable[index]->count++;
         return 1;
     }
 
     if (processCount > MAX_PROCESSES){
         printf("Process table is full, can't add any new processes.");
-        return -1
+        return -1;
     }
-    sharedProcess newSharedProcess = &processTable[processCount++];
-    strcpy(newSharedProcess.processName, scriptName);
-    newSharedProcess.count = 1;
+    struct sharedProcess* newSharedProcess;
+    processTable[processCount++] = newSharedProcess;
+    strcpy(newSharedProcess->processName, scriptName);
+    newSharedProcess->count = 1;
     return 0;
 }
 
-void removeScriptSharedMemory(char *scriptName){
+int removeScriptSharedMemory(char *scriptName){
     int index = checkScriptLoaded(scriptName);
     if (index == -1){
         printf("Can't remove script doesn't exist");
-        return;
+        return -1;
     }
-    processTable[index].count--;
-    if (processTable[index].count == 0){
-        free(processTable[index]);
+    processTable[index]->count--;
+    if (processTable[index]->count == 0){
+        memset(&processTable[index], 0, sizeof(processTable[index]));
+        return 1;
     }
+    return 0;
 }
 
 void initFrameStore(){
@@ -203,7 +206,7 @@ void initFrameStore(){
 
 int getFreeFrame(){
     for (int i = 0; i < (FRAME_STORE_SIZE/FRAME_SIZE); i++){
-        if (strcmp(&frameStore[i*FRAME_SIZE], "")){
+        if (strcmp(frameStore[i*FRAME_SIZE], "")){
             return i;
         }
     }
@@ -211,11 +214,8 @@ int getFreeFrame(){
 }
 
 void deleteFrame(int frameIndex){
-    if (offset < 0 || frameIndex > (FRAME_STORE_SIZE/FRAME_SIZE)){
+    if (frameIndex < 0 || frameIndex > (FRAME_STORE_SIZE/FRAME_SIZE)){
         printf("Error: line index incorrect");
-        return;
-    } else if (offset < 0 || offset > FRAME_SIZE){
-        printf("Error: offset incorrect");
         return;
     }
     for (int i = 0; i < FRAME_SIZE; i++){
@@ -227,7 +227,7 @@ void deleteFrame(int frameIndex){
 }
 
 char* getLine(int frameIndex, int offset){
-    if (offset < 0 || frameIndex > (FRAME_STORE_SIZE/FRAME_SIZE)){
+    if (frameIndex < 0 || frameIndex > (FRAME_STORE_SIZE/FRAME_SIZE)){
         printf("Error: line index incorrect");
         return NULL;
     } else if (offset < 0 || offset > FRAME_SIZE){
