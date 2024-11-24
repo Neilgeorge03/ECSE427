@@ -93,3 +93,92 @@ int parseInput(char inp[]) {
 
     return errorCode;
 }
+
+
+
+
+
+void initBackingStore(){
+    char *filePath;
+    DIR *dir = opendir(BACKING_STORE);
+    if (dir){
+        // means backing store exists
+        struct dirent *dirEntry;
+        while ((dirEntry = readdir(dir)) != NULL){
+            if (strcmp(dirEntry->d_name, ".") != 0 && strcmp(dirEntry->d_name, "..") != 0){
+                snprintf(filePath, sizeof(filePath), "%s/%s", BACKING_STORE, dirEntry->d_name);
+                remove(filePath);
+            }
+        }
+        closedir(dir);
+    } else {
+        mkdir(BACKING_STORE, 0777);
+    }
+}
+
+void delBackingStore(){
+    char *filePath;
+    DIR *dir = opendir(BACKING_STORE);
+    if (dir){
+        // means backing store exists
+        struct dirent *dirEntry;
+        while ((dirEntry = readdir(dir)) != NULL){
+            if (strcmp(dirEntry->d_name, ".") != 0 && strcmp(dirEntry->d_name, "..") != 0){
+                snprintf(filePath, sizeof(filePath), "%s/%s", BACKING_STORE, dirEntry->d_name);
+                remove(filePath);
+            }
+        }
+        closedir(dir);
+    }
+    rmdir(BACKING_STORE);
+}
+
+// TODO
+struct pagingReturn *loadScriptBackingStore(char* dirName, char* scriptName, FILE* fp){
+    int page = 0;
+    int lineCount = 0;
+    char line[MAX_USER_INPUT];
+    char filePath[MAX_USER_INPUT];
+    char fileName[MAX_USER_INPUT];
+    FILE* backingStoreFile = NULL;
+    int offset;
+    int frameIndex = -1;
+    struct pagingReturn *pageReturn;
+    int pageTableIndex = 0;
+
+    while (fgets(line, MAX_USER_INPUT - 1, fp)) {
+        if (lineCount % 3 == 0){
+            offset = 0;
+            frameIndex = getFreeFrame();
+
+            if (frameIndex == -1){
+                printf("No free frame available\n");
+                return;
+            }
+            if (backingStoreFile != NULL){
+                fclose(backingStoreFile);
+            }
+
+            sprintf(filePath, "%s/%s_page%d", dirName, scriptName, page);
+
+            backingStoreFile = fopen(filePath, "w");
+
+            if (backingStoreFile == NULL){
+                printf("Error: failed to create backing store file");
+                return;
+            }
+
+            pageReturn->pageTable[pageTableIndex++] = frameIndex;
+            page++;
+        }
+        fprintf(backingStoreFile, "%s", line);
+        loadPageFrameStore(frameIndex * FRAME_SIZE + offset++, filePath);
+        lineCount++;
+
+    }
+    if (backingStoreFile != NULL) {
+        fclose(backingStoreFile);
+    }
+    pageReturn->numberLines=lineCount;
+    return pageReturn;
+}

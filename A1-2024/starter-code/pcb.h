@@ -15,6 +15,12 @@ struct PCB {
     // Score is equal to number_of_lines when the program starts, we decrement it in aging
     // can't go lower than 0 but it's used to sort the PCB
     int job_length_score;
+    int pageTable[(FRAME_STORE_SIZE / FRAME_SIZE)];
+    char scriptName[100];
+};
+struct pagingReturn {
+    int numberLines;
+    int pageTable[(FRAME_STORE_SIZE / FRAME_SIZE)];
 };
 
 // Linked-List data structure used as a queue
@@ -25,8 +31,9 @@ struct READY_QUEUE {
 // Global ready_queue -> extern. Declared in pcb.c
 extern struct READY_QUEUE readyQueue;
 struct PCB *createBackgroundPCB();
-struct PCB *createPCB(FILE *fp);
-struct PCB *instantiatePCB(int pid, int number_of_lines);
+struct PCB *createPCB(FILE *fp, struct pagingReturn *returnPage);
+struct PCB *createDuplicatePCB(char* fileName);
+struct PCB *instantiatePCB(int pid, struct pagingReturn *returnPage);
 void enqueue(struct PCB *pcb);
 struct PCB *dequeue();
 void freePCB(struct PCB *pcb);

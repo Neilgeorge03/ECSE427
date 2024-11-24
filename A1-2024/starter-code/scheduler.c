@@ -129,6 +129,8 @@ void executeRR(int count) {
     struct PCB *copyPCB;
     char key[KEY_SIZE];
     int errCode;
+    int index;
+    int offset;
 
     if (isMultithreadingMode) {
         int *count_arg = &count;

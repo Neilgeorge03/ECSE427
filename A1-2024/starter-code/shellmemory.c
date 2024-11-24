@@ -4,22 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BACKING_STORE "backingStore"
-#define FRAME_STORE_SIZE 30;
-#define VARIABLE_STORE_SIZE 10;
-#define MAX_PROCESSES 100;
-#define FRAME_SIZE 3;
-
 int processCount = 0;
 
-struct memory_struct {
-    char *var;
-    char *value;
-};
-struct sharedProcess {
-    char *processName;
-    int count;
-};
 
 struct memory_struct shellmemory[MEM_SIZE];
 struct memory_struct variableStore[VARIABLE_STORE_SIZE];
@@ -171,42 +157,8 @@ int clearMemory(int pid, int length) {
 
 
 
-void initBackingStore(){
-    char filePath[256];
-    DIR *dir = opendir(BACKING_STORE);
-    if (dir){
-        // means backing store exists
-        struct dirent *dirEntry;
-        while ((dirEntry = readdir(dir)) != NULL){
-            if (strcmp(dirEntry->d_name, ".") != 0 && strcmp(dirEntry->d_name, "..") != 0){
-                snprintf(filePath, sizeof(filePath), "%s/%s", BACKING_STORE, dirEntry->d_name);
-                remove(filePath);
-            }
-        }
-        closedir(dir);
-    } else {
-        mkdir(BACKING_STORE, 0777);
-    }
-}
-void delBackingStore(){
-    char filePath[256];
-    DIR *dir = opendir(BACKING_STORE);
-    if (dir){
-        // means backing store exists
-        struct dirent *dirEntry;
-        while ((dirEntry = readdir(dir)) != NULL){
-            if (strcmp(dirEntry->d_name, ".") != 0 && strcmp(dirEntry->d_name, "..") != 0){
-                snprintf(filePath, sizeof(filePath), "%s/%s", BACKING_STORE, dirEntry->d_name);
-                remove(filePath);
-            }
-        }
-        closedir(dir);
-    }
-    rmdir(BACKING_STORE);
-}
-
 int checkScriptLoaded(char *scriptName){
-    for (int i = 0; i < processTable; i++){
+    for (int i = 0; i < MAX_PROCESSES; i++){
         if (strcmp(processTable[i].processName, scriptName) == 0){
             return i;
         }
@@ -218,7 +170,7 @@ int loadScriptSharedMemory(char *scriptName){
     int index = checkScriptLoaded(scriptName);
     if (index != -1){
         processTable[index].count++;
-        return 0;
+        return 1;
     }
 
     if (processCount > MAX_PROCESSES){
@@ -231,6 +183,18 @@ int loadScriptSharedMemory(char *scriptName){
     return 0;
 }
 
+void removeScriptSharedMemory(char *scriptName){
+    int index = checkScriptLoaded(scriptName);
+    if (index == -1){
+        printf("Can't remove script doesn't exist");
+        return;
+    }
+    processTable[index].count--;
+    if (processTable[index].count == 0){
+        free(processTable[index]);
+    }
+}
+
 void initFrameStore(){
     for (int i = 0; i < FRAME_STORE_SIZE; i++){
         strcpy(frameStore[i], "");
@@ -238,11 +202,12 @@ void initFrameStore(){
 }
 
 int getFreeFrame(){
-    for (int i = 0; i < FRAME_STORE_SIZE; i += FRAME_SIZE){
-        if (strcmp(frameStore[i], "")){
+    for (int i = 0; i < (FRAME_STORE_SIZE/FRAME_SIZE); i++){
+        if (strcmp(&frameStore[i*FRAME_SIZE], "")){
             return i;
         }
     }
+    return -1;
 }
 
 void deleteFrame(int frameIndex){
@@ -254,7 +219,10 @@ void deleteFrame(int frameIndex){
         return;
     }
     for (int i = 0; i < FRAME_SIZE; i++){
-        strcpy(frameStore[i + frameIndex * FRAME_SIZE], "");
+        if (frameStore[i] != NULL) {
+            free(frameStore[i]); // Free each allocated string
+            frameStore[i] = NULL;
+        }
     }
 }
 
@@ -270,11 +238,12 @@ char* getLine(int frameIndex, int offset){
 }
 
 
-// TODO
-void loadScriptBackingStore(const char* scriptName){
 
-}
+
 
 // TODO
 // Load page into frame store,
-void loadPageFrameStore
+void loadPageFrameStore(int index, char* fileName){
+    frameStore[index] = (char*) malloc(strlen(fileName) + 1);
+    strcpy(frameStore[index], fileName);
+}

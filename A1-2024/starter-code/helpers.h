@@ -10,5 +10,6 @@ int checkAlphanum(char *name);
 int generatePID();
 int executeInstruction(char *key);
 int isProperPolicy(char *policy);
+int executePagingInstruction(int index, int offset);
 
 #endif

@@ -303,7 +303,12 @@ int exec(char *arguments[], int argumentSize) {
             printf("Failed to open file.\n");
             return 3;
         }
-        createPCB(fp);
+        if (loadScriptSharedMemory(arguments[i]) == 1){
+            createDuplicatePCB(arguments[i]);
+        }else {
+            struct pagingReturn *returnPage = loadScriptBackingStore(BACKING_STORE, arguments[i], fp);
+            createPCB(fp, returnPage);
+        }
         fclose(fp);
     }
 
