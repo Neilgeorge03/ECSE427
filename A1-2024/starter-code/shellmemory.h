@@ -10,6 +10,7 @@
 #define MAX_PROCESSES 100
 
 void mem_init();
+void initFrameStore();
 int getFreeFrame();
 void loadPageFrameStore(int index, char* fileName);
 char *mem_get_value(char *var);
@@ -26,7 +27,7 @@ struct memory_struct {
     char *value;
 };
 struct sharedProcess {
-    char *processName;
+    char processName[100];
     int count;
 };
 

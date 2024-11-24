@@ -113,7 +113,6 @@ int interpreter(char *command_args[], int args_size) {
     } else if (strcmp(command_args[0], "exec") == 0) {
         if (args_size > 6)
             return badcommand();
-
         return exec(command_args, args_size);
 
         // If none of the valid commands are executed and more than 1 token ->
@@ -132,7 +131,7 @@ int my_ls() {
 
     no_of_entries = scandir(".", &namelist, myLsFilter, myLsSort);
     if (no_of_entries < 0) {
-        printf("scandir error");
+        printf("scandir error\n");
         exit(EXIT_FAILURE);
     }
 
@@ -289,32 +288,31 @@ int exec(char *arguments[], int argumentSize) {
         createBackgroundPCB();
         numOfOptionalSettings++;
     }
-
     policy = arguments[argumentSize - numOfOptionalSettings];
     if (isProperPolicy(policy) != 0) {
         printf("Not a proper policy.\n");
         return badcommand();
     }
-
     // Load files into Shell memory and create PCBs
     for (int i = 1; i < argumentSize - numOfOptionalSettings; i++) {
-        struct PCB* pcb;
         FILE *fp = fopen(arguments[i], "rt");
         if (fp == NULL) {
-            printf("Failed to open file.\n");
+            printf("Failed to open file, exec.\n");
             return 3;
         }
         if (strcmp(policy, "RR") == 0){
+            struct PCB* pcb;
             if (loadScriptSharedMemory(arguments[i]) == 1) {
                 pcb = createDuplicatePCB(arguments[i]);
             } else {
-                struct pagingReturn *returnPage = loadScriptBackingStore(BACKING_STORE, arguments[i], fp);
+                struct pagingReturn* returnPage = loadScriptBackingStore(BACKING_STORE, arguments[i], fp);
+                addFileToPagingArray(returnPage, arguments[i]);
                 pcb = createFramePCB(fp, returnPage);
             }
+            addScriptName(pcb, arguments[i]);
         } else {
             createPCB(fp);
         }
-        addScriptName(pcb, arguments[i]);
         fclose(fp);
     }
 

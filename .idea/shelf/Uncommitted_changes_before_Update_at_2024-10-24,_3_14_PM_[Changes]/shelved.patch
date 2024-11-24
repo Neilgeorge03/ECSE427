@@ -1,0 +1,32 @@
+Index: A1-2024/starter-code/shell.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/A1-2024/starter-code/shell.c b/A1-2024/starter-code/shell.c
+--- a/A1-2024/starter-code/shell.c	
++++ b/A1-2024/starter-code/shell.c	
+@@ -41,6 +41,7 @@
+         for (char *token = strtok(userInput, ";"); token != NULL;
+              token = strtok(NULL, ";")) {
+             errorCode = parseInput(token);
++            printf("errorCode: %d\n", errorCode);
+             if (errorCode == -1)
+                 exit(99);
+         }
+Index: A1-2024/starter-code/interpreter.c
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/A1-2024/starter-code/interpreter.c b/A1-2024/starter-code/interpreter.c
+--- a/A1-2024/starter-code/interpreter.c	
++++ b/A1-2024/starter-code/interpreter.c	
+@@ -58,6 +58,7 @@
+     }
+     if (isBackground) {
+         addBackgroundCommands(command_args, args_size);
++        return 0;
+     } else if (strcmp(command_args[0], "help") == 0) {
+         if (args_size != 1)
+             return badcommand();
