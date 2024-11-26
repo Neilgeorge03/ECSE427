@@ -83,7 +83,7 @@ int executePagingInstruction(int index, int offset) {
     char* fileName = getLine(index, offset);
     FILE* fp = fopen(fileName, "r");
     if (fp == NULL){
-        printf("Can't open up page");
+        printf("Can't open up page\n");
         return -1;
     }
     char line[100]; // Buffer for the line
@@ -104,7 +104,7 @@ int executePagingInstruction(int index, int offset) {
         currentLine++;
     }
     fclose(fp);
-    printf("Couldn't find offset %d in file %s", offset, fileName);
+    printf("Couldn't find offset %d in file %s\n", offset, fileName);
     return -1;
 }
 

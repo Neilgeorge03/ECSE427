@@ -65,19 +65,16 @@ struct PCB *createDuplicatePCB(char* fileName) {
     int pid = generatePID();
     struct PCB *current = readyQueue.head;
 
-    while (current != NULL) {
-        if (strcmp(current->scriptName, fileName) == 0) {
-            break;
-        }
-        current = current->next;
-    }
-    if (current == NULL) {
+    int index = findFileIndex(fileName);
+
+    if (index == -1) {
         return NULL;
     }
-    struct pagingReturn *returnPage;
-    returnPage->numberLines = current->number_of_lines;
-    memcpy(returnPage->pageTable, current->pageTable, sizeof(current->pageTable));
-    return instantiateFramePCB(pid, returnPage);
+    struct pagingReturn *oldPage = getPageInfo(index);
+    struct pagingReturn *newPage;
+    newPage->numberLines = oldPage->numberLines;
+    memcpy(newPage->pageTable, oldPage->pageTable, sizeof(oldPage->pageTable));
+    return instantiateFramePCB(pid, newPage);
 }
 
 struct PCB *createBackgroundPCB() {

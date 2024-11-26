@@ -9,6 +9,8 @@
 #include <sys/stat.h>   // For mkdir
 #include <sys/types.h>  // For types used by mkdir and other file-related operations
 
+int fileCount = 0;
+struct pagingFileTracker pageTracker[100];
 int parseInput(char ui[]);
 int is_interactive_mode();
 
@@ -28,6 +30,8 @@ int main(int argc, char *argv[]) {
 
     // init shell memory
     mem_init();
+    initBackingStore();
+    initFrameStore();
     while (1) {
         if (is_interactive_mode()) {
             printf("%c ", prompt);
@@ -137,51 +141,101 @@ void delBackingStore(){
 }
 
 // TODO
-struct pagingReturn *loadScriptBackingStore(char* dirName, char* scriptName, FILE* fp){
+struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName, FILE *fp) {
     int page = 0;
     int lineCount = 0;
+    int offset = 0;
+    int frameIndex = -1;
+    int pageTableIndex = 0;
     char line[MAX_USER_INPUT];
     char filePath[MAX_USER_INPUT];
-    char fileName[MAX_USER_INPUT];
-    FILE* backingStoreFile = NULL;
-    int offset;
-    int frameIndex = -1;
-    struct pagingReturn *pageReturn;
-    int pageTableIndex = 0;
+    FILE *backingStoreFile = NULL;
 
-    while (fgets(line, MAX_USER_INPUT - 1, fp)) {
-        if (lineCount % 3 == 0){
+    // Allocate memory for pagingReturn
+    struct pagingReturn *pageReturn = malloc(sizeof(struct pagingReturn));
+    if (pageReturn == NULL) {
+        printf("Error: Memory allocation for pagingReturn failed\n");
+        return NULL;
+    }
+    memset(pageReturn, 0, sizeof(struct pagingReturn));
+
+    while (fgets(line, sizeof(line), fp)) {
+        if (lineCount % FRAME_SIZE == 0) {  // New page logic
             offset = 0;
             frameIndex = getFreeFrame();
-
-            if (frameIndex == -1){
+            if (frameIndex == -1) {
                 printf("No free frame available\n");
+                free(pageReturn); // Clean up allocated memory
+                if (backingStoreFile != NULL) fclose(backingStoreFile);
                 return NULL;
             }
-            if (backingStoreFile != NULL){
-                fclose(backingStoreFile);
-            }
 
-            sprintf(filePath, "%s/%s_page%d", dirName, scriptName, page);
+            if (backingStoreFile != NULL) fclose(backingStoreFile);
 
+            // Create a new backing store file for this page
+            snprintf(filePath, sizeof(filePath), "%s/%s_page%d", dirName, scriptName, page);
             backingStoreFile = fopen(filePath, "w");
-
-            if (backingStoreFile == NULL){
-                printf("Error: failed to create backing store file");
+            if (backingStoreFile == NULL) {
+                printf("Error: Failed to create backing store file\n");
+                free(pageReturn); // Clean up allocated memory
                 return NULL;
             }
 
+            // Add frameIndex to page table
+            int maxPages = MAX_PAGES;
+            if (pageTableIndex >= maxPages) {  // Check bounds for page table
+                printf("Error: Page table overflow\n");
+                free(pageReturn);
+                fclose(backingStoreFile);
+                return NULL;
+            }
             pageReturn->pageTable[pageTableIndex++] = frameIndex;
             page++;
         }
-        fprintf(backingStoreFile, "%s", line);
-        loadPageFrameStore(frameIndex * FRAME_SIZE + offset++, filePath);
-        lineCount++;
 
+        // Write to backing store file
+        fprintf(backingStoreFile, "%s", line);
+        // Load the page into the frame store
+        loadPageFrameStore(frameIndex * FRAME_SIZE + offset, filePath);
+        offset++;
+        lineCount++;
     }
-    if (backingStoreFile != NULL) {
-        fclose(backingStoreFile);
-    }
-    pageReturn->numberLines=lineCount;
+    // Close the final file
+    if (backingStoreFile != NULL) fclose(backingStoreFile);
+
+    // Populate the pagingReturn structure
+    pageReturn->numberLines = lineCount;
+
     return pageReturn;
+}
+
+
+
+int findFileIndex(const char *filename) {
+    for (int i = 0; i < fileCount; i++) {
+        if (strcmp(pageTracker[i].filename, filename) == 0) {
+            return i;  // Return the index if found
+        }
+    }
+    return -1;  // File not found
+}
+struct pagingReturn* getPageInfo(int index) {
+    return pageTracker[index].pageData;
+}
+
+int addFileToPagingArray(struct pagingReturn* page, char *filename) {
+    if (fileCount >= MAX_FILES) {
+        printf("Error: Maximum file limit reached.\n");
+        return -1;
+    }
+
+
+    for (int i = 0; i < fileCount; i++){
+        if (strcmp(pageTracker[i].filename, filename) == 0){
+            return -1;
+        }
+    }
+    strcpy(pageTracker[fileCount].filename, filename);
+    pageTracker[fileCount].pageData = page;
+    return 0;
 }
