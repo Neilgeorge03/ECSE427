@@ -99,7 +99,7 @@ char *variable_get_value(char *var_in) {
             return strdup(variableStore[i].value);
         }
     }
-    return NULL;
+    return "Variable does not exist";
 }
 
 // Loads script (pointer at by fp) into shell memory
@@ -113,7 +113,7 @@ int loadScriptInMemory(FILE *fp, int pid) {
 
     while (fgets(line, MAX_USER_INPUT - 1, fp)) {
         sprintf(key, "%d_%d", pid, current_line_num);
-        mem_set_value(key, line);
+        variable_set_value(key, line);
 
         memset(line, 0, MAX_USER_INPUT);
         memset(key, 0, sizeof(key));
