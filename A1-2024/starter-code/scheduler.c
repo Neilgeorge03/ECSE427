@@ -129,6 +129,9 @@ void executeRR(int count) {
     struct PCB *copyPCB;
     char key[KEY_SIZE];
     int errCode;
+    int index;
+    int offset;
+    int pageNumber;
 
     if (isMultithreadingMode) {
         int *count_arg = &count;
@@ -170,8 +173,10 @@ void executeRR(int count) {
         // 3 - not a background PCB 
         while (copyPCB->pid != -100 && copyPCB->pc < last_index &&
                 copyPCB->pc < copyPCB->number_of_lines) {
-            sprintf(key, "%d_%d", copyPCB->pid, copyPCB->pc);
-            executeInstruction(key);
+            pageNumber = (copyPCB->number_of_lines/FRAME_SIZE);
+            offset = (copyPCB->number_of_lines%FRAME_SIZE);
+            index = copyPCB->pageTable[pageNumber];
+            executePagingInstruction(index, offset);
             copyPCB->pc++;
         }
 

@@ -79,6 +79,34 @@ int executeInstruction(char *key) {
     }
     return 0;
 }
+int executePagingInstruction(int index, int offset) {
+    char* fileName = getLine(index, offset);
+    FILE* fp = fopen(fileName, "r");
+    if (fp == NULL){
+        printf("Can't open up page");
+        return -1;
+    }
+    char line[100]; // Buffer for the line
+    int currentLine = 0;
+
+    // Read lines sequentially
+    while (fgets(line, sizeof(line), fp)) {
+        if (currentLine == offset) {
+            fclose(fp);  // Close the file before returning
+            int errCode = parseInput(line);
+            if (errCode == -1) {
+                printf("Fatal error during instruction execution occured.\n");
+                return -1;
+            }
+            return 0;
+
+        }
+        currentLine++;
+    }
+    fclose(fp);
+    printf("Couldn't find offset %d in file %s", offset, fileName);
+    return -1;
+}
 
 int isProperPolicy(char *policy) {
     for (int i = 0; i < 5; i++) {

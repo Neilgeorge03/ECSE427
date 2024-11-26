@@ -1,7 +1,11 @@
+#include "shell.h"
 #include <stdio.h>
 
 #ifndef PCB_H
 #define PCB_H
+
+#define FRAME_SIZE 3
+#define FRAME_STORE_SIZE 30
 
 struct PCB {
     int pid;
@@ -15,6 +19,8 @@ struct PCB {
     // Score is equal to number_of_lines when the program starts, we decrement it in aging
     // can't go lower than 0 but it's used to sort the PCB
     int job_length_score;
+    int pageTable[(FRAME_STORE_SIZE / FRAME_SIZE)];
+    char scriptName[100];
 };
 
 // Linked-List data structure used as a queue
@@ -26,11 +32,15 @@ struct READY_QUEUE {
 extern struct READY_QUEUE readyQueue;
 struct PCB *createBackgroundPCB();
 struct PCB *createPCB(FILE *fp);
-struct PCB *instantiatePCB(int pid, int number_of_lines);
+struct PCB *createFramePCB(FILE *fp, struct pagingReturn *returnPage);
+struct PCB *createDuplicatePCB(char* fileName);
+struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage);
+struct PCB *instantiatePCB(int pid, int numberLines);
 void enqueue(struct PCB *pcb);
 struct PCB *dequeue();
 void freePCB(struct PCB *pcb);
 void selectionSortQueue();
+void addScriptName(struct PCB *pcb, char* scriptName);
 void swap(struct PCB *min, struct PCB *current);
 void ageReadyQueue();
 

@@ -1,6 +1,7 @@
 #include "pcb.h"
 #include "helpers.h"
 #include "shellmemory.h"
+#include "shell.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,7 +13,7 @@ void enqueueHead(struct PCB *pcb);
 // this method creates the process control block for a script beginning with key
 // {pid}_0 set by the method set_value in shellmemory.h.
 // dynamically allocated pcb -> needs to be freed
-struct PCB *instantiatePCB(int pid, int number_of_lines) {
+struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage) {
     struct PCB *pcb = (struct PCB *)malloc(sizeof(struct PCB));
     if (!pcb) {
         printf("Failed to allocate memory for PCB.\n");
@@ -20,19 +21,63 @@ struct PCB *instantiatePCB(int pid, int number_of_lines) {
     }
 
     pcb->pid = pid;
-    pcb->number_of_lines = number_of_lines;
+    pcb->number_of_lines = returnPage->numberLines;
     pcb->pc = 0;
     pcb->next = NULL;
-    pcb->job_length_score = number_of_lines;
+    pcb->job_length_score = returnPage->numberLines;
+    memcpy(pcb->pageTable, returnPage->pageTable, sizeof(returnPage->pageTable));
     enqueue(pcb);
 
     return pcb;
 }
+struct PCB *instantiatePCB(int pid, int numberLines){
+    struct PCB *pcb = (struct PCB *)malloc(sizeof(struct PCB));
+    if (!pcb) {
+        printf("Failed to allocate memory for PCB.\n");
+        return NULL;
+    }
 
+    pcb->pid = pid;
+    pcb->number_of_lines = numberLines;
+    pcb->pc = 0;
+    pcb->next = NULL;
+    pcb->job_length_score = numberLines;
+    enqueue(pcb);
+
+    return pcb;
+
+}
+
+void addScriptName(struct PCB *pcb, char* scriptName){
+    strcpy(pcb->scriptName, scriptName);
+}
 struct PCB *createPCB(FILE *fp) {
     int pid = generatePID();
     int number_of_lines = loadScriptInMemory(fp, pid);
     return instantiatePCB(pid, number_of_lines);
+}
+struct PCB *createFramePCB(FILE *fp, struct pagingReturn *returnPage) {
+    int pid = generatePID();
+    return instantiateFramePCB(pid, returnPage);
+}
+
+struct PCB *createDuplicatePCB(char* fileName) {
+    int pid = generatePID();
+    struct PCB *current = readyQueue.head;
+
+    while (current != NULL) {
+        if (strcmp(current->scriptName, fileName) == 0) {
+            break;
+        }
+        current = current->next;
+    }
+    if (current == NULL) {
+        return NULL;
+    }
+    struct pagingReturn *returnPage;
+    returnPage->numberLines = current->number_of_lines;
+    memcpy(returnPage->pageTable, current->pageTable, sizeof(current->pageTable));
+    return instantiateFramePCB(pid, returnPage);
 }
 
 struct PCB *createBackgroundPCB() {
@@ -91,7 +136,11 @@ void freePCB(struct PCB *pcb) {
     char key[KEY_SIZE];
     sprintf(key, "%d_0", pcb->pid);
     char *checkValue = mem_get_value(key);
-
+    if (removeScriptSharedMemory(pcb->scriptName) == 1){
+        for (int i = 0; i < (FRAME_STORE_SIZE / FRAME_SIZE); i++){
+            deleteFrame(pcb->pageTable[i]);
+        }
+    }
     // If variable has already been cleared, no need to clear again.
     if (strcmp(checkValue, "Variable does not exist") != 0) {
         if (clearMemory(pcb->pid, pcb->number_of_lines) != 0) {
