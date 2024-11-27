@@ -351,6 +351,7 @@ int exec(char *arguments[], int argumentSize) {
         executeRR(30);
     }
 
+    findFileIndex("P_f4");
     return 0;
 }
 

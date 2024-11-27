@@ -10,7 +10,7 @@
 #include <sys/types.h>  // For types used by mkdir and other file-related operations
 
 int fileCount = 0;
-struct pagingFileTracker pageTracker[100];
+struct pagingFileTracker pageTracker[10];
 int parseInput(char ui[]);
 int is_interactive_mode();
 
@@ -210,9 +210,8 @@ struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName, FIL
 }
 
 
-
 int findFileIndex(const char *filename) {
-    for (int i = 0; i < fileCount; i++) {
+    for (int i = 0; i < MAX_PROCESSES; i++) {
         if (strcmp(pageTracker[i].filename, filename) == 0) {
             return i;  // Return the index if found
         }
@@ -237,5 +236,6 @@ int addFileToPagingArray(struct pagingReturn* page, char *filename) {
     }
     strcpy(pageTracker[fileCount].filename, filename);
     pageTracker[fileCount].pageData = page;
+    fileCount++;
     return 0;
 }
