@@ -1,5 +1,6 @@
 #include "scheduler.h"
 #include "shell.h"
+#include "pcb.h"
 #include "shellmemory.h"
 #include <ctype.h>
 #include <dirent.h>
@@ -7,6 +8,7 @@
 #include <string.h>
 
 int UNIQUE_PID = 0;
+int evictPage();
 
 int myLsFilter(const struct dirent *namelist) {
     const char *name = namelist->d_name;
@@ -115,4 +117,67 @@ int isProperPolicy(char *policy) {
         }
     }
     return 1;
+}
+
+void loadPageOnDemand(struct pagingReturn *pageReturn, int pageNumber, char *scriptName) {
+    int i = 0;
+    while(i < 20) {
+       printf("pageReturn content: %d, %d\n", pageReturn->numberLines, pageReturn->pageTable[0]);
+       printf("pageNumber: %d\n", pageNumber);
+       printf("scriptname: %s\n", scriptName);
+       i++;
+        
+    }
+    if (pageNumber >= MAX_PAGES || pageReturn->pageTable[pageNumber] != -1) {
+        return; // Page is already loaded or invalid page number
+    }
+
+    int frameIndex = getFreeFrame();
+    printf("frameIndex = %d\n", frameIndex);
+    if (frameIndex == -1) {
+        frameIndex = evictPage();
+    }
+
+    char filePath[MAX_USER_INPUT];
+    snprintf(filePath, sizeof(filePath), "%s/%s_page%d", BACKING_STORE, scriptName, pageNumber);
+
+    FILE *fp = fopen(filePath, "r");
+    if (fp == NULL) {
+        printf("Error: Cannot load page %d for %s.\n", pageNumber, scriptName);
+        return;
+    }
+
+    char line[MAX_USER_INPUT];
+    for (int i = 0; i < FRAME_SIZE && fgets(line, sizeof(line), fp); i++) {
+        strcpy(frameStore[frameIndex * FRAME_SIZE + i], line);
+    }
+    fclose(fp);
+
+    pageReturn->pageTable[pageNumber] = frameIndex; // Update page table
+}
+
+int evictPage() {
+    // just put 0 for now
+    int victimFrame = 0;
+    printf("Page fault! Victim page contents:\n");
+    for (int i = 0; i < FRAME_SIZE; i++) {
+        printf("%s\n", frameStore[victimFrame * FRAME_SIZE + i]);
+        strcpy(frameStore[victimFrame * FRAME_SIZE + i], ""); // Clear the frame
+    }
+    printf("End of victim page contents.\n");
+    return victimFrame;
+}
+
+void handlePageFault(struct PCB *pcb, int pageNumber) {
+    int frameIndex = getFreeFrame();
+
+    if (frameIndex == -1) { // No free frame; evict a page
+        frameIndex = evictPage();
+    }
+
+    printf("Page fault!\n");
+    loadPageOnDemand(getPageInfo(findFileIndex(pcb->scriptName)), pageNumber, pcb->scriptName);
+
+    // Update the PCB's page table
+    pcb->pageTable[pageNumber] = frameIndex;
 }

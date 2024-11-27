@@ -17,8 +17,6 @@ int is_interactive_mode();
 // Start of everything
 int main(int argc, char *argv[]) {
     printf("Frame Store Size = X; Variable Store Size = Y\n");
-    printf("framestoresize: %d\n, varstoresiez: %d\n", FRAME_STORE_SIZE, VARIABLE_STORE_SIZE);
-    // help();
 
     char prompt = '$';              // Shell prompt
     char userInput[MAX_USER_INPUT]; // user's input stored here

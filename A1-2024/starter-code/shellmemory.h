@@ -25,6 +25,7 @@ int loadScriptSharedMemory(char *scriptName);
 int removeScriptSharedMemory(char *scriptName);
 char* getLine(int frameIndex, int offset);
 void deleteFrame(int frameIndex);
+extern char frameStore[FRAME_STORE_SIZE][100];
 
 struct memory_struct {
     char *var;

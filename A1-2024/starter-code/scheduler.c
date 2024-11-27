@@ -129,7 +129,7 @@ void executeRR(int count) {
     struct PCB *copyPCB;
     char key[KEY_SIZE];
     int errCode;
-    int index;
+    int frameIndex;
     int offset;
     int pageNumber;
 
@@ -175,8 +175,16 @@ void executeRR(int count) {
                 copyPCB->pc < copyPCB->number_of_lines) {
             pageNumber = (copyPCB->pc/FRAME_SIZE);
             offset = (copyPCB->pc%FRAME_SIZE);
-            index = copyPCB->pageTable[pageNumber];
-            executePagingInstruction(index, offset);
+
+            // check if page is properly loaded, otherwise page fault
+            if (copyPCB->pageTable[pageNumber] == -1) { 
+                handlePageFault(copyPCB, pageNumber);
+                enqueue(copyPCB); // Re-enqueue the process due to page fault
+                break; 
+            }
+
+            frameIndex = copyPCB->pageTable[pageNumber];
+            executePagingInstruction(frameIndex, offset);
             copyPCB->pc++;
         }
 

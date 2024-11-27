@@ -293,6 +293,8 @@ int exec(char *arguments[], int argumentSize) {
         printf("Not a proper policy.\n");
         return badcommand();
     }
+
+    struct pagingReturn* returnPage;
     // Load files into Shell memory and create PCBs
     for (int i = 1; i < argumentSize - numOfOptionalSettings; i++) {
         FILE *fp = fopen(arguments[i], "rt");
@@ -305,9 +307,13 @@ int exec(char *arguments[], int argumentSize) {
             if (loadScriptSharedMemory(arguments[i]) == 1) {
                 pcb = createDuplicatePCB(arguments[i]);
             } else {
-                struct pagingReturn* returnPage = loadScriptBackingStore(BACKING_STORE, arguments[i], fp);
+                returnPage = loadScriptBackingStore(BACKING_STORE, arguments[i], fp);
                 addFileToPagingArray(returnPage, arguments[i]);
                 pcb = createFramePCB(fp, returnPage);
+            }
+
+            for (int j = 0; j < 2 && j < returnPage->numberLines / FRAME_SIZE + 1; j++) {
+                loadPageOnDemand(returnPage, j, arguments[i]);
             }
             addScriptName(pcb, arguments[i]);
         } else {
