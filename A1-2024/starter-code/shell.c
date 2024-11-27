@@ -16,8 +16,7 @@ int is_interactive_mode();
 
 // Start of everything
 int main(int argc, char *argv[]) {
-    printf("Frame Store Size = X; Variable Store Size = Y\n");
-    printf("framestoresize: %d\n, varstoresiez: %d\n", FRAME_STORE_SIZE, VARIABLE_STORE_SIZE);
+    printf("Frame Store Size = %d; Variable Store Size = %d\n", FRAME_STORE_SIZE, VARIABLE_STORE_SIZE);
     // help();
 
     char prompt = '$';              // Shell prompt
@@ -92,13 +91,32 @@ int parseInput(char inp[]) {
             break;
         ix++;
     }
+//    char* userInput; // user's input stored here
+//    // strcpy(userInput, "exec prog1.txt prog2.txt prog3.txt RR MT");
+//    for (char *token = strtok(userInput, ";"); token != NULL;
+//         token = strtok(NULL, ";")) {
+//        errorCode = parseInput(token);
+//        if (errorCode == -1)
+//            exit(99);
+//    }
+
     errorCode = interpreter(words, w);
 
     // Freeing memory to avoid memory leaks
-     for (int i = 0; i < w; i++) {
+    for (int i = 0; i < w; i++) {
         free(words[i]);
     }
 
+    return errorCode;
+}
+int parseInputFrameStore(char* line) {
+    int errorCode;
+    for (char *token = strtok(line, ";"); token != NULL;
+         token = strtok(NULL, ";")) {
+        errorCode = parseInput(token);
+        if (errorCode == -1)
+            exit(99);
+    }
     return errorCode;
 }
 
@@ -107,15 +125,13 @@ int parseInput(char inp[]) {
 
 
 void initBackingStore(){
-    char *filePath;
     DIR *dir = opendir(BACKING_STORE);
     if (dir){
         // means backing store exists
         struct dirent *dirEntry;
         while ((dirEntry = readdir(dir)) != NULL){
             if (strcmp(dirEntry->d_name, ".") != 0 && strcmp(dirEntry->d_name, "..") != 0){
-                snprintf(filePath, sizeof(filePath), "%s/%s", BACKING_STORE, dirEntry->d_name);
-                remove(filePath);
+                remove(dirEntry->d_name);
             }
         }
         closedir(dir);

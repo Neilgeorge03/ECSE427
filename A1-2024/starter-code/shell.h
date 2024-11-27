@@ -7,9 +7,11 @@
 #define MAX_SCRIPT_SIZE (MAX_USER_INPUT * 100)
 #define KEY_SIZE 100
 #define BACKING_STORE "backingStore"
+
 #ifndef FRAME_STORE_SIZE
 #define FRAME_STORE_SIZE 30
 #endif
+
 #define FRAME_SIZE 3
 #define MAX_PAGES 10
 #define MAX_FILES 100
@@ -28,6 +30,7 @@ void initBackingStore();
 int addFileToPagingArray(struct pagingReturn* page, char *filename);
 int findFileIndex(const char *filename);
 void delBackingStore();
+int parseInputFrameStore(char inp[]);
 struct pagingReturn* getPageInfo(int index);
 struct pagingReturn *loadScriptBackingStore(char* dirName, char* scriptName, FILE* fp);
 #endif

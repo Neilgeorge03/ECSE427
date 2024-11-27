@@ -11,7 +11,6 @@
 #define MEM_SIZE 1000
 #define MAX_SCRIPT_SIZE (MAX_USER_INPUT * 100)
 #define KEY_SIZE 100
-#define VARIABLE_STORE_SIZE 30
 #define MAX_PROCESSES 100
 
 void mem_init();
