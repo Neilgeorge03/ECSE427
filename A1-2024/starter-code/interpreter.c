@@ -303,9 +303,18 @@ int exec(char *arguments[], int argumentSize) {
         if (strcmp(policy, "RR") == 0){
             struct PCB* pcb;
             if (loadScriptSharedMemory(arguments[i]) == 1) {
-                pcb = createDuplicatePCB(arguments[i]);
+                int fileIndex = findFileIndex(arguments[i]);
+                if (fileIndex == -1){
+                    printf("Error");
+                    return -1;
+                } else {
+                    struct pagingReturn* returnPage = getPageInfo(fileIndex);
+                    pcb = createFramePCB(fp, returnPage);
+                }
+
             } else {
                 struct pagingReturn* returnPage = loadScriptBackingStore(BACKING_STORE, arguments[i], fp);
+//                printf("arguments[i]: %s\n", arguments[i]);
                 addFileToPagingArray(returnPage, arguments[i]);
                 pcb = createFramePCB(fp, returnPage);
             }
