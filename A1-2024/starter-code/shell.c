@@ -1,6 +1,7 @@
 #include "shell.h"
 #include "interpreter.h"
 #include "shellmemory.h"
+#include "pcb.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -188,7 +189,11 @@ struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName, FIL
                 fclose(backingStoreFile);
                 return NULL;
             }
-            pageReturn->pageTable[pageTableIndex++] = frameIndex;
+            if (pageTableIndex > 1) {
+                pageReturn->pageTable[pageTableIndex++] = frameIndex;
+            } else{
+                pageReturn->pageTable[pageTableIndex++] = -1;
+            }
             page++;
         }
 
@@ -235,6 +240,30 @@ int addFileToPagingArray(struct pagingReturn* page, char *filename) {
         }
     }
     strcpy(pageTracker[fileCount].filename, filename);
-    pageTracker[fileCount].pageData = page;
+    pageTracker[fileCount++].pageData = page;
+    return 0;
+}
+
+
+void removePageInfo(char* filename, int removeIndex){
+    int index = findFileIndex(filename);
+    pageTracker[index].pageData[removeIndex] = -1;
+    updatePCB(filename);
+}
+void updatePageInfo(char* filename, int newIndex, int value){
+    int index = findFileIndex(filename);
+    pageTracker[index].pageData[newIndex] = value;
+    updatePCB(filename);
+}
+
+int updatePCB(char *filename){
+    struct PCB* current = getPCBHead();
+    int index = findFileIndex(filename);
+    while(current != NULL){
+        if (strcmp(filename, current->scriptName) == 0){
+            memcpy(current->pageTable, pageTracker[index], sizeof(pageTracker[index]));
+        }
+        current = current->next;
+    }
     return 0;
 }

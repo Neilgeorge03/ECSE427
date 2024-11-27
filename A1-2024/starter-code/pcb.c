@@ -220,3 +220,7 @@ void ageReadyQueue() {
         current = current->next;
     }
 }
+
+struct PCB* getPCBHead(){
+    return readyQueue.head;
+}

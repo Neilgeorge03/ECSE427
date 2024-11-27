@@ -28,6 +28,7 @@ void initBackingStore();
 int addFileToPagingArray(struct pagingReturn* page, char *filename);
 int findFileIndex(const char *filename);
 void delBackingStore();
+int updatePCB(char *filename);
 struct pagingReturn* getPageInfo(int index);
 struct pagingReturn *loadScriptBackingStore(char* dirName, char* scriptName, FILE* fp);
 #endif

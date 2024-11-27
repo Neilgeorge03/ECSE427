@@ -40,6 +40,7 @@ struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage);
 struct PCB *instantiatePCB(int pid, int numberLines);
 void enqueue(struct PCB *pcb);
 struct PCB *dequeue();
+struct PCB* getPCBHead();
 void freePCB(struct PCB *pcb);
 void selectionSortQueue();
 void addScriptName(struct PCB *pcb, char* scriptName);
