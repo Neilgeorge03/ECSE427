@@ -224,8 +224,8 @@ void deleteFrame(int frameIndex){
         return;
     }
     for (int i = 0; i < FRAME_SIZE; i++){
-        if (frameStore[i] != NULL) {
-            strcpy(frameStore[i], "");
+        if (frameStore[frameIndex * FRAME_SIZE + i] != NULL) {
+            strcpy(frameStore[frameIndex * FRAME_SIZE + i], "");
         }
     }
 }
