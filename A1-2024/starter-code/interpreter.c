@@ -188,7 +188,7 @@ int quit() {
         isQuitJoinThreads = 1; 
         return 0;
     }
-
+    delBackingStore();
     printf("Bye!\n");
     exit(0);
 }
@@ -314,7 +314,6 @@ int exec(char *arguments[], int argumentSize) {
 
             } else {
                 struct pagingReturn* returnPage = loadScriptBackingStore(BACKING_STORE, arguments[i], fp);
-//                printf("arguments[i]: %s\n", arguments[i]);
                 addFileToPagingArray(returnPage, arguments[i]);
                 pcb = createFramePCB(fp, returnPage);
             }

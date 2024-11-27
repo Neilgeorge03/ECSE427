@@ -121,17 +121,16 @@ int parseInputFrameStore(char* line) {
 }
 
 
-
-
-
 void initBackingStore(){
     DIR *dir = opendir(BACKING_STORE);
     if (dir){
         // means backing store exists
         struct dirent *dirEntry;
+        char filePath[100];
         while ((dirEntry = readdir(dir)) != NULL){
             if (strcmp(dirEntry->d_name, ".") != 0 && strcmp(dirEntry->d_name, "..") != 0){
-                remove(dirEntry->d_name);
+                snprintf(filePath, sizeof(filePath), "%s/%s", BACKING_STORE, dirEntry->d_name);
+                remove(filePath);
             }
         }
         closedir(dir);
