@@ -16,7 +16,8 @@ int is_interactive_mode();
 
 // Start of everything
 int main(int argc, char *argv[]) {
-    printf("Shell version 1.3 created September 2024\n\n");
+    printf("Frame Store Size = X; Variable Store Size = Y\n");
+    printf("framestoresize: %d\n, varstoresiez: %d\n", FRAME_STORE_SIZE, VARIABLE_STORE_SIZE);
     // help();
 
     char prompt = '$';              // Shell prompt

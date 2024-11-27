@@ -1,12 +1,16 @@
 #include <stdio.h>
 #include "shell.h"
+
 #ifndef SHELLMEMORY_H
 #define SHELLMEMORY_H
+
+#ifndef VARIABLE_STORE_SIZE
+#define VARIABLE_STORE_SIZE 10
+#endif
 
 #define MEM_SIZE 1000
 #define MAX_SCRIPT_SIZE (MAX_USER_INPUT * 100)
 #define KEY_SIZE 100
-#define VARIABLE_STORE_SIZE 10
 #define MAX_PROCESSES 100
 
 void mem_init();

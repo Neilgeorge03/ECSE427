@@ -5,7 +5,9 @@
 #define PCB_H
 
 #define FRAME_SIZE 3
+#ifndef FRAME_STORE_SIZE
 #define FRAME_STORE_SIZE 30
+#endif
 
 struct PCB {
     int pid;
