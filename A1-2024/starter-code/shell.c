@@ -247,12 +247,12 @@ int addFileToPagingArray(struct pagingReturn* page, char *filename) {
 
 void removePageInfo(char* filename, int removeIndex){
     int index = findFileIndex(filename);
-    pageTracker[index].pageData[removeIndex] = -1;
+    pageTracker[index].pageData->pageTable[removeIndex] = -1;
     updatePCB(filename);
 }
 void updatePageInfo(char* filename, int pageTableIndex, int frameStoreIndex){
     int index = findFileIndex(filename);
-    pageTracker[index].pageData[pageTableIndex] = frameStoreIndex;
+    pageTracker[index].pageData->pageTable[pageTableIndex] = frameStoreIndex;
     updatePCB(filename);
 }
 
@@ -261,7 +261,7 @@ int updatePCB(char *filename){
     int index = findFileIndex(filename);
     while(current != NULL){
         if (strcmp(filename, current->scriptName) == 0){
-            memcpy(current->pageTable, pageTracker[index], sizeof(pageTracker[index]));
+            memcpy(current->pageTable, &pageTracker[index], sizeof(pageTracker[index]));
         }
         current = current->next;
     }
