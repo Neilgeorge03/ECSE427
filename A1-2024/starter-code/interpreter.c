@@ -361,7 +361,11 @@ int run(char *script) {
         return 3;
     }
 
-    struct PCB *pcb = createPCB(fp);
+    struct pagingReturn* returnPage = loadScriptBackingStore(BACKING_STORE, script, fp);
+    addFileToPagingArray(returnPage, script);
+    struct PCB *pcb = createFramePCB(fp, returnPage);
+
+
     fclose(fp);
 
     // Just need to execute everything sequentially, thus FCFS is sufficient
