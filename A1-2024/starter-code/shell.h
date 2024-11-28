@@ -31,4 +31,7 @@ void delBackingStore();
 int updatePCB(char *filename);
 struct pagingReturn* getPageInfo(int index);
 struct pagingReturn *loadScriptBackingStore(char* dirName, char* scriptName, FILE* fp);
+void removePageInfo(char* filename, int removeIndex);
+void updatePageInfo(char* filename, int pageTableIndex, int frameStoreIndex);
+int updatePCB(char *filename);
 #endif

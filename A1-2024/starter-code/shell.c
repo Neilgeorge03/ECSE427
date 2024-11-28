@@ -250,9 +250,9 @@ void removePageInfo(char* filename, int removeIndex){
     pageTracker[index].pageData[removeIndex] = -1;
     updatePCB(filename);
 }
-void updatePageInfo(char* filename, int newIndex, int value){
+void updatePageInfo(char* filename, int pageTableIndex, int frameStoreIndex){
     int index = findFileIndex(filename);
-    pageTracker[index].pageData[newIndex] = value;
+    pageTracker[index].pageData[pageTableIndex] = frameStoreIndex;
     updatePCB(filename);
 }
 

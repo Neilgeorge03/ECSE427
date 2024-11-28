@@ -5,6 +5,7 @@
 #include <string.h>
 
 int processCount = 0;
+struct demandPagingTracker demandPageTracker = {NULL};
 
 
 struct memory_struct shellmemory[MEM_SIZE];
@@ -250,3 +251,5 @@ char* getLine(int frameIndex, int offset){
 void loadPageFrameStore(int index, char* fileName){
     strcpy(frameStore[index], fileName);
 }
+
+
