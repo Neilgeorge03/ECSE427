@@ -31,7 +31,6 @@ int removeDemandQueue(int index);
 int removeDemandHead();
 
 
-
 extern char frameStore[FRAME_STORE_SIZE][100];
 
 struct memory_struct {
@@ -43,15 +42,15 @@ struct sharedProcess {
     int count;
 };
 
-struct demandPagingTracker {
+struct DemandPagingTracker {
     int frameIndex;
     char fileName[100];
-    struct demandPagingTracker* next;
-    struct demandPagingTracker* prev;
+    struct DemandPagingTracker* next;
+    struct DemandPagingTracker* prev;
 };
 
-struct demandPagingQueue {
-    struct demandPagingTracker* head;
+struct DemandPagingQueue {
+    struct DemandPagingTracker* head;
 };
 
 #endif

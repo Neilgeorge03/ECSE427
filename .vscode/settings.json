@@ -1,0 +1,14 @@
+{
+    "files.associations": {
+        "shellmemory.h": "c",
+        "dirent.h": "c",
+        "stdlib.h": "c",
+        "stdio.h": "c",
+        "stat.h": "c",
+        "helpers.h": "c",
+        "scheduler.h": "c",
+        "pcb.h": "c",
+        "shell.h": "c",
+        "string.h": "c"
+    }
+}
