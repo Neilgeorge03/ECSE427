@@ -1,5 +1,6 @@
 #include "scheduler.h"
 #include "shell.h"
+#include "pcb.h"
 #include "shellmemory.h"
 #include <ctype.h>
 #include <dirent.h>
@@ -7,6 +8,7 @@
 #include <string.h>
 
 int UNIQUE_PID = 0;
+int evictPage();
 
 int myLsFilter(const struct dirent *namelist) {
     const char *name = namelist->d_name;
@@ -115,4 +117,60 @@ int isProperPolicy(char *policy) {
         }
     }
     return 1;
+}
+
+void loadPageOnDemand(struct pagingReturn *pageReturn, int pageNumber, char *scriptName) {
+    if (pageReturn->pageTable[pageNumber] != -1) {
+        return; // Page is already loaded or invalid page number
+    }
+
+    int frameIndex = getFreeFrame();
+    if (frameIndex == -1) {
+        frameIndex = evictPage();
+    }
+
+    char filePath[MAX_USER_INPUT];
+    snprintf(filePath, sizeof(filePath), "%s/%s_page%d", BACKING_STORE, scriptName, pageNumber);
+    FILE *fp = fopen(filePath, "r");
+    if (fp == NULL) {
+        printf("Error: Cannot load page %d for %s.\n", pageNumber, scriptName);
+        return;
+    }
+
+    char line[MAX_USER_INPUT];
+    for (int i = 0; i < FRAME_SIZE && fgets(line, sizeof(line), fp); i++) {
+        strcpy(frameStore[frameIndex * FRAME_SIZE + i], line);
+    }
+    fclose(fp);
+
+    pageReturn->pageTable[pageNumber] = frameIndex; // Update page table
+}
+
+int evictPage() {
+    // LRU Frame
+    int victimFrame = removeDemandHead();
+    printf("Page fault! Victim page contents:\n\n");
+    FILE *fp = fopen(frameStore[victimFrame * FRAME_SIZE], "r");
+    int i = 0;
+    char line[MAX_USER_INPUT];
+    while (fgets(line, sizeof(line), fp) && i < FRAME_SIZE) {
+        printf("%s", line);
+        strcpy(frameStore[victimFrame * FRAME_SIZE + i++], ""); // Clear frameStore
+    }
+
+    printf("\nEnd of victim page contents.\n");
+    return victimFrame;
+}
+
+struct PCB* handlePageFault(struct PCB *pcb, int pageNumber) {
+    int frameIndex = getFreeFrame();
+    if (frameIndex == -1) { // No free frame; evict a page
+        frameIndex = evictPage();
+        removePageInfo(pcb->scriptName, pageNumber);
+        return updatePageInfo(pcb, pcb->scriptName, pageNumber, frameIndex);
+    }
+
+    printf("Page fault!\n");
+
+    return updatePageInfo(pcb, pcb->scriptName, pageNumber, frameIndex);
 }

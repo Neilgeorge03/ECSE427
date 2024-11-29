@@ -6,7 +6,7 @@
 
 #define FRAME_SIZE 3
 #ifndef FRAME_STORE_SIZE
-#define FRAME_STORE_SIZE 30
+#define FRAME_STORE_SIZE 3
 #endif
 
 struct PCB {
@@ -34,12 +34,13 @@ struct READY_QUEUE {
 extern struct READY_QUEUE readyQueue;
 struct PCB *createBackgroundPCB();
 struct PCB *createPCB(FILE *fp);
-struct PCB *createFramePCB(FILE *fp, struct pagingReturn *returnPage);
+struct PCB *createFramePCB(FILE *fp, struct pagingReturn *returnPage, char* fileName);
 struct PCB *createDuplicatePCB(char* fileName);
-struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage);
+struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage, char* scriptName);
 struct PCB *instantiatePCB(int pid, int numberLines);
 void enqueue(struct PCB *pcb);
 struct PCB *dequeue();
+struct PCB* getPCBHead();
 void freePCB(struct PCB *pcb);
 void selectionSortQueue();
 void addScriptName(struct PCB *pcb, char* scriptName);

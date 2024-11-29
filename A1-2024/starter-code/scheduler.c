@@ -132,11 +132,10 @@ void *workerExecuteRR(void *count_arg) {
 
 void executeRR(int count) {
     struct PCB *copyPCB;
-    char key[KEY_SIZE];
-    int errCode;
-    int index;
+    int frameIndex;
     int offset;
     int pageNumber;
+    int LRUIndex;
 
     if (isMultithreadingMode) {
         int *count_arg = &count;
@@ -180,8 +179,14 @@ void executeRR(int count) {
                 copyPCB->pc < copyPCB->number_of_lines) {
             pageNumber = (copyPCB->pc/FRAME_SIZE);
             offset = (copyPCB->pc%FRAME_SIZE);
-            index = copyPCB->pageTable[pageNumber];
-            executePagingInstruction(index, offset);
+            if (copyPCB->pageTable[pageNumber] == -1) {
+                copyPCB = handlePageFault(copyPCB, pageNumber);
+                break;
+            }
+            LRUIndex = removeDemandQueue(copyPCB->pageTable[pageNumber]);
+            frameIndex = copyPCB->pageTable[pageNumber];
+            executePagingInstruction(frameIndex, offset);
+            addTailDemandQueue(LRUIndex, copyPCB->scriptName);
             copyPCB->pc++;
         }
 

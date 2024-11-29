@@ -33,4 +33,7 @@ void delBackingStore();
 int parseInputFrameStore(char inp[]);
 struct pagingReturn* getPageInfo(int index);
 struct pagingReturn *loadScriptBackingStore(char* dirName, char* scriptName, FILE* fp);
+void removePageInfo(char* filename, int removeIndex);
+struct PCB* updatePageInfo(struct PCB* pcb, char* filename, int pageTableIndex, int frameStoreIndex);
+struct PCB* updatePCB(struct PCB* pcb, char *filename);
 #endif

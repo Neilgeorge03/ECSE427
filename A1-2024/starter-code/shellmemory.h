@@ -27,6 +27,13 @@ int loadScriptSharedMemory(char *scriptName);
 int removeScriptSharedMemory(char *scriptName);
 char* getLine(int frameIndex, int offset);
 void deleteFrame(int frameIndex);
+void readDemandQueue();
+int addTailDemandQueue(int index, char* fileName);
+int removeDemandQueue(int index);
+int removeDemandHead();
+
+
+extern char frameStore[FRAME_STORE_SIZE][100];
 int checkScriptLoaded(char *scriptName);
 
 struct memory_struct {
@@ -38,6 +45,15 @@ struct sharedProcess {
     int count;
 };
 
+struct DemandPagingTracker {
+    int frameIndex;
+    char fileName[100];
+    struct DemandPagingTracker* next;
+    struct DemandPagingTracker* prev;
+};
 
+struct DemandPagingQueue {
+    struct DemandPagingTracker* head;
+};
 
 #endif

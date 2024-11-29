@@ -1,6 +1,7 @@
 #include "shell.h"
 #include "interpreter.h"
 #include "shellmemory.h"
+#include "pcb.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,8 +17,7 @@ int is_interactive_mode();
 
 // Start of everything
 int main(int argc, char *argv[]) {
-    printf("Frame Store Size = %d; Variable Store Size = %d\n", FRAME_STORE_SIZE, VARIABLE_STORE_SIZE);
-    // help();
+    printf("Frame Store Size = X; Variable Store Size = Y\n");
 
     char prompt = '$';              // Shell prompt
     char userInput[MAX_USER_INPUT]; // user's input stored here
@@ -179,13 +179,7 @@ struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName, FIL
         if (lineCount % FRAME_SIZE == 0) {  // New page logic
             offset = 0;
             frameIndex = getFreeFrame();
-            if (frameIndex == -1) {
-                printf("No free frame available\n");
-                free(pageReturn); // Clean up allocated memory
-                if (backingStoreFile != NULL) fclose(backingStoreFile);
-                return NULL;
-            }
-
+            int maxPages = MAX_PAGES;
             if (backingStoreFile != NULL) fclose(backingStoreFile);
 
             // Create a new backing store file for this page
@@ -197,28 +191,42 @@ struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName, FIL
                 return NULL;
             }
 
-            // Add frameIndex to page table
-            int maxPages = MAX_PAGES;
-            if (pageTableIndex >= maxPages) {  // Check bounds for page table
+            if (page >= maxPages) {  // Check bounds for page table
                 printf("Error: Page table overflow\n");
                 free(pageReturn);
                 fclose(backingStoreFile);
                 return NULL;
             }
-            pageReturn->pageTable[pageTableIndex++] = frameIndex;
+
+//            if (frameIndex == -1) {
+//                printf("No free frame available\n");
+//                free(pageReturn); // Clean up allocated memory
+//                if (backingStoreFile != NULL) fclose(backingStoreFile);
+//                return NULL;
+//            }
+            if (page > 1 || frameIndex == -1) {
+                pageReturn->pageTable[page] = -1;
+            } else { // Add frameIndex to page table
+                pageReturn->pageTable[page] = frameIndex;
+            }
             page++;
+
         }
 
         // Write to backing store file
         fprintf(backingStoreFile, "%s", line);
         // Load the page into the frame store
         loadPageFrameStore(frameIndex * FRAME_SIZE + offset, filePath);
+        if (page > 2){
+            deleteFrame(frameIndex);
+        } else if (offset == 0){
+            addTailDemandQueue(frameIndex, filePath);
+        }
         offset++;
         lineCount++;
     }
     // Close the final file
     if (backingStoreFile != NULL) fclose(backingStoreFile);
-
     // Populate the pagingReturn structure
     pageReturn->numberLines = lineCount;
 
@@ -254,4 +262,37 @@ int addFileToPagingArray(struct pagingReturn* page, char *filename) {
     pageTracker[fileCount].pageData = page;
     fileCount++;
     return 0;
+}
+
+
+void removePageInfo(char* filename, int removeIndex){
+    int index = findFileIndex(filename);
+    pageTracker[index].pageData->pageTable[removeIndex] = -1;
+}
+
+struct PCB* updatePageInfo(struct PCB* pcb, char* filename, int pageTableIndex, int frameStoreIndex){
+    int index = findFileIndex(filename);
+    char newFilename[256];
+    pageTracker[index].pageData->pageTable[pageTableIndex] = frameStoreIndex;
+    addTailDemandQueue(frameStoreIndex, filename);
+    for (int offset = 0; offset < FRAME_SIZE && pcb->pc+offset < pcb->number_of_lines; offset++){
+        snprintf(newFilename, sizeof(newFilename), "%s/%s_page%d", BACKING_STORE, filename, (pcb->pc/FRAME_SIZE));
+        loadPageFrameStore(frameStoreIndex * FRAME_SIZE + offset, newFilename);
+    }
+    return updatePCB(pcb, filename);
+}
+
+struct PCB* updatePCB(struct PCB* pcb, char *filename){
+    struct PCB* current = getPCBHead();
+    int index = findFileIndex(filename);
+
+    while(current != NULL){
+        if (strcmp(filename, current->scriptName) == 0){
+            memcpy(current->pageTable, &pageTracker[index], sizeof(pageTracker[index]));
+            return current;
+        }
+        current = current->next;
+    }
+    memcpy(pcb->pageTable, pageTracker[index].pageData->pageTable, sizeof(pcb->pageTable));
+    return pcb;
 }

@@ -5,6 +5,7 @@
 #include <string.h>
 
 int processCount = 0;
+struct DemandPagingQueue demandPagingQueue = {NULL};
 
 
 struct memory_struct shellmemory[MEM_SIZE];
@@ -159,7 +160,7 @@ int clearMemory(int pid, int length) {
 
 int checkScriptLoaded(char *scriptName){
     for (int i = 0; i < processCount; i++){
-        if (strcmp(processTable[i]->processName, scriptName) == 0){
+        if (strcmp((processTable[i]->processName), scriptName) == 0){
             return i;
         }
     }
@@ -196,10 +197,6 @@ int removeScriptSharedMemory(char *scriptName){
         return -1;
     }
     processTable[index]->count--;
-//    if (processTable[index]->count == 0){
-//        strcpy(processTable[index]->processName, "");
-//        return 1;
-//    }
     return 0;
 }
 
@@ -242,11 +239,104 @@ char* getLine(int frameIndex, int offset){
 }
 
 
-
-
-
 // TODO
 // Load page into frame store,
 void loadPageFrameStore(int index, char* fileName){
     strcpy(frameStore[index], fileName);
 }
+
+
+int addTailDemandQueue(int index, char* fileName) {
+    struct DemandPagingTracker *newNode = (struct DemandPagingTracker *)malloc(sizeof(struct DemandPagingTracker));    
+    if (newNode == NULL) {
+        return -1;
+    } 
+
+    newNode->frameIndex = index;
+    strncpy(newNode->fileName, fileName, sizeof(newNode->fileName));
+    // making sure string ends with \0
+    newNode->fileName[sizeof(newNode->fileName) - 1] = '\0';
+    newNode->next = NULL;
+    newNode->prev = NULL;
+    if (demandPagingQueue.head == NULL) {
+        demandPagingQueue.head = newNode;
+    } else {
+        // find tail 
+        struct DemandPagingTracker *currNode = demandPagingQueue.head;
+        while (currNode->next != NULL) {
+            currNode = currNode->next;
+        }
+        // Add the new node at the end
+        currNode->next = newNode;
+        newNode->prev = currNode;
+    }
+
+    return newNode->frameIndex;
+}
+
+
+int removeDemandQueue(int index) {
+    if (demandPagingQueue.head == NULL) {
+        return -1;
+    }
+
+    struct DemandPagingTracker *targetNode = demandPagingQueue.head;
+    while (targetNode->frameIndex != index) {
+        targetNode = targetNode->next;
+    }
+
+    // If after loop above copyNode == NULL -> no such frame index exist
+    if (targetNode == NULL) {
+        return -1;
+    }
+
+    if (targetNode->prev != NULL) {
+        // replacig prev node with target next
+        targetNode->prev->next = targetNode->next;
+    } else {
+        // removing the head 
+        demandPagingQueue.head = targetNode->next;
+    }
+    
+    if (targetNode->next != NULL) {
+        // replacing next node with target prev
+        targetNode->next->prev = targetNode->prev;
+    } 
+
+    int retValue = targetNode->frameIndex;
+    free(targetNode);
+    return retValue;
+}
+
+// This method returns the head node and return its frameIndex.
+int removeDemandHead() {
+    if (demandPagingQueue.head == NULL) {
+        return -1; // Queue is empty
+    }
+
+    struct DemandPagingTracker *currHead = demandPagingQueue.head;
+    demandPagingQueue.head = currHead->next;
+
+    if (demandPagingQueue.head != NULL) {
+        demandPagingQueue.head->prev = NULL;
+    }
+
+    int retValue = currHead->frameIndex;
+    free(currHead);
+
+    return retValue;
+}
+
+void readDemandQueue() {
+    if (demandPagingQueue.head == NULL) {
+        return; // Queue is empty
+    }
+
+    struct DemandPagingTracker *currHead = demandPagingQueue.head;
+    while (currHead != NULL){
+        printf("currHead: %d, %s\n", currHead->frameIndex, currHead->fileName);
+        currHead = currHead->next;
+    }
+}
+
+

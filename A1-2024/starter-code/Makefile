@@ -28,3 +28,4 @@ helpers.o: helpers.c
 
 clean: 
 	rm mysh; rm *.o
+	rm -r ./backingStore/*

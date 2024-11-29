@@ -13,19 +13,19 @@ void enqueueHead(struct PCB *pcb);
 // this method creates the process control block for a script beginning with key
 // {pid}_0 set by the method set_value in shellmemory.h.
 // dynamically allocated pcb -> needs to be freed
-struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage) {
+struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage, char* scriptName) {
     struct PCB *pcb = (struct PCB *)malloc(sizeof(struct PCB));
     if (!pcb) {
         printf("Failed to allocate memory for PCB.\n");
         return NULL;
     }
-
     pcb->pid = pid;
     pcb->number_of_lines = returnPage->numberLines;
     pcb->pc = 0;
     pcb->next = NULL;
     pcb->job_length_score = returnPage->numberLines;
     memcpy(pcb->pageTable, returnPage->pageTable, sizeof(returnPage->pageTable));
+    strcpy(pcb->scriptName, scriptName);
     enqueue(pcb);
 
     return pcb;
@@ -48,17 +48,14 @@ struct PCB *instantiatePCB(int pid, int numberLines){
 
 }
 
-void addScriptName(struct PCB *pcb, char* scriptName){
-    strcpy(pcb->scriptName, scriptName);
-}
 struct PCB *createPCB(FILE *fp) {
     int pid = generatePID();
     int number_of_lines = loadScriptInMemory(fp, pid);
     return instantiatePCB(pid, number_of_lines);
 }
-struct PCB *createFramePCB(FILE *fp, struct pagingReturn *returnPage) {
+struct PCB *createFramePCB(FILE *fp, struct pagingReturn *returnPage, char* fileName) {
     int pid = generatePID();
-    return instantiateFramePCB(pid, returnPage);
+    return instantiateFramePCB(pid, returnPage, fileName);
 }
 
 struct PCB *createDuplicatePCB(char* fileName) {
@@ -74,7 +71,7 @@ struct PCB *createDuplicatePCB(char* fileName) {
     struct pagingReturn *newPage;
     newPage->numberLines = oldPage->numberLines;
     memcpy(newPage->pageTable, oldPage->pageTable, sizeof(oldPage->pageTable));
-    return instantiateFramePCB(pid, newPage);
+    return instantiateFramePCB(pid, newPage, current->scriptName);
 }
 
 struct PCB *createBackgroundPCB() {
@@ -134,8 +131,8 @@ void freePCB(struct PCB *pcb) {
         for (int i = 0; i < (FRAME_STORE_SIZE / FRAME_SIZE); i++){
             deleteFrame(pcb->pageTable[i]);
         }
-        free(pcb);
     }
+    free(pcb);
 }
 
 void swap(struct PCB *min, struct PCB *current) {
@@ -209,4 +206,9 @@ void ageReadyQueue() {
         }
         current = current->next;
     }
+}
+
+struct PCB* getPCBHead(){
+    struct PCB *current = readyQueue.head;
+    return current;
 }
