@@ -174,18 +174,15 @@ void executeRR(int count) {
                 copyPCB->pc < copyPCB->number_of_lines) {
             pageNumber = (copyPCB->pc/FRAME_SIZE);
             offset = (copyPCB->pc%FRAME_SIZE);
-            readDemandQueue();
-            LRUIndex = removeDemandQueue(pageNumber);
-            printf("LRUIndex: %d\n", LRUIndex);
             if (copyPCB->pageTable[pageNumber] == -1) {
                 copyPCB = handlePageFault(copyPCB, pageNumber);
                 break;
             }
-
+            LRUIndex = removeDemandQueue(copyPCB->pageTable[pageNumber]);
             frameIndex = copyPCB->pageTable[pageNumber];
             executePagingInstruction(frameIndex, offset);
-            copyPCB->pc++;
             addTailDemandQueue(LRUIndex, copyPCB->scriptName);
+            copyPCB->pc++;
         }
 
         if (copyPCB->pid != -100 &&

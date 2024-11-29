@@ -258,6 +258,7 @@ struct PCB* updatePageInfo(struct PCB* pcb, char* filename, int pageTableIndex, 
     int index = findFileIndex(filename);
     char newFilename[256];
     pageTracker[index].pageData->pageTable[pageTableIndex] = frameStoreIndex;
+    addTailDemandQueue(frameStoreIndex, filename);
     for (int offset = 0; offset < FRAME_SIZE && pcb->pc+offset < pcb->number_of_lines; offset++){
         snprintf(newFilename, sizeof(newFilename), "%s/%s_page%d", BACKING_STORE, filename, (pcb->pc/FRAME_SIZE));
         loadPageFrameStore(frameStoreIndex * FRAME_SIZE + offset, newFilename);

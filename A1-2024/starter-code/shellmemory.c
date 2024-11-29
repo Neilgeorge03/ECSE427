@@ -258,9 +258,7 @@ int addTailDemandQueue(int index, char* fileName) {
     newNode->fileName[sizeof(newNode->fileName) - 1] = '\0';
     newNode->next = NULL;
     newNode->prev = NULL;
-    readDemandQueue();
     if (demandPagingQueue.head == NULL) {
-        printf("SDFSDFS\n");
         demandPagingQueue.head = newNode;
     } else {
         // find tail 
@@ -284,11 +282,7 @@ int removeDemandQueue(int index) {
 
     struct DemandPagingTracker *targetNode = demandPagingQueue.head;
     while (targetNode->frameIndex != index) {
-        printf("targetNode->FrameIndex: %d\n", targetNode->frameIndex);
         targetNode = targetNode->next;
-        if (targetNode == NULL){
-            return 100000;
-        }
     }
 
     // If after loop above copyNode == NULL -> no such frame index exist
@@ -301,7 +295,7 @@ int removeDemandQueue(int index) {
         targetNode->prev->next = targetNode->next;
     } else {
         // removing the head 
-        demandPagingQueue.head = targetNode->prev;
+        demandPagingQueue.head = targetNode->next;
     }
     
     if (targetNode->next != NULL) {
