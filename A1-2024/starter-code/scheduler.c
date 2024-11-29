@@ -19,6 +19,9 @@ int executeFCFS() {
     int errCode;
     struct PCB *copyPCB;
     char key[KEY_SIZE];
+    int index;
+    int offset;
+    int pageNumber;
 
     do {
         copyPCB = dequeue();
@@ -33,8 +36,10 @@ int executeFCFS() {
 
         // pc here refers to "program counter"
         while (copyPCB->pid != -100 && copyPCB->pc < last_index) {
-            sprintf(key, "%d_%d", copyPCB->pid, copyPCB->pc);
-            errCode = executeInstruction(key);
+            pageNumber = (copyPCB->pc/FRAME_SIZE);
+            offset = (copyPCB->pc%FRAME_SIZE);
+            index = copyPCB->pageTable[pageNumber];
+            executePagingInstruction(index, offset);
             copyPCB->pc++;
         }
         // Important to free to remove instrcutions from shell memory 

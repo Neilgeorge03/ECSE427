@@ -131,8 +131,8 @@ void freePCB(struct PCB *pcb) {
         for (int i = 0; i < (FRAME_STORE_SIZE / FRAME_SIZE); i++){
             deleteFrame(pcb->pageTable[i]);
         }
+        free(pcb);
     }
-    free(pcb);
 }
 
 void swap(struct PCB *min, struct PCB *current) {

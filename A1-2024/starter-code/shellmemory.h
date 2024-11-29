@@ -19,6 +19,8 @@ int getFreeFrame();
 void loadPageFrameStore(int index, char* fileName);
 char *mem_get_value(char *var);
 void mem_set_value(char *var, char *value);
+char *variable_get_value(char *var);
+void variable_set_value(char *var, char *value);
 int loadScriptInMemory(FILE *fp, int pid);
 int clearMemory(int pid, int length);
 int loadScriptSharedMemory(char *scriptName);
@@ -29,6 +31,7 @@ void readDemandQueue();
 int addTailDemandQueue(int index, char* fileName);
 int removeDemandQueue(int index);
 int removeDemandHead();
+int checkScriptLoaded(char *scriptName);
 
 
 extern char frameStore[FRAME_STORE_SIZE][100];
