@@ -312,7 +312,7 @@ int exec(char *arguments[], int argumentSize) {
                     return -1;
                 } else {
                     struct pagingReturn* returnPage = getPageInfo(fileIndex);
-                    pcb = createFramePCB(fp, returnPage);
+                    pcb = createFramePCB(fp, returnPage, arguments[i]);
                 }
 
             } else {
@@ -351,21 +351,33 @@ int exec(char *arguments[], int argumentSize) {
     else if (strcmp(policy, "RR30") == 0) {
         executeRR(30);
     }
-
-    findFileIndex("P_f4");
     return 0;
 }
 
 int run(char *script) {
+    struct pagingReturn* returnPage;
+    struct PCB* pcb;
     FILE *fp = fopen(script, "rt");
     if (fp == NULL) {
         printf("Failed to open file.\n");
         return 3;
     }
 
-    struct pagingReturn* returnPage = loadScriptBackingStore(BACKING_STORE, script, fp);
-    addFileToPagingArray(returnPage, script);
-    struct PCB *pcb = createFramePCB(fp, returnPage);
+    if (loadScriptSharedMemory(script) == 1) {
+        int fileIndex = findFileIndex(script);
+        if (fileIndex == -1){
+            printf("Error");
+            return -1;
+        } else {
+            struct pagingReturn* returnPage = getPageInfo(fileIndex);
+            pcb = createFramePCB(fp, returnPage, script);
+        }
+
+    } else {
+        returnPage = loadScriptBackingStore(BACKING_STORE, script, fp);
+        addFileToPagingArray(returnPage, script);
+        pcb = createFramePCB(fp, returnPage, script);
+    }
 
 
     fclose(fp);

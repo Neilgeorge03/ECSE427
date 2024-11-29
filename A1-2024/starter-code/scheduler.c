@@ -19,9 +19,10 @@ int executeFCFS() {
     int errCode;
     struct PCB *copyPCB;
     char key[KEY_SIZE];
-    int index;
+    int frameIndex;
     int offset;
     int pageNumber;
+    int LRUIndex;
 
     do {
         copyPCB = dequeue();
@@ -33,13 +34,18 @@ int executeFCFS() {
             // simply stop executing furhter.
             executeBackgroundInstruction(1000);
         }
-
         // pc here refers to "program counter"
         while (copyPCB->pid != -100 && copyPCB->pc < last_index) {
             pageNumber = (copyPCB->pc/FRAME_SIZE);
             offset = (copyPCB->pc%FRAME_SIZE);
-            index = copyPCB->pageTable[pageNumber];
-            executePagingInstruction(index, offset);
+            if (copyPCB->pageTable[pageNumber] == -1) {
+                copyPCB = handlePageFault(copyPCB, pageNumber);
+                break;
+            }
+            LRUIndex = removeDemandQueue(copyPCB->pageTable[pageNumber]);
+            frameIndex = copyPCB->pageTable[pageNumber];
+            executePagingInstruction(frameIndex, offset);
+            addTailDemandQueue(LRUIndex, copyPCB->scriptName);
             copyPCB->pc++;
         }
         // Important to free to remove instrcutions from shell memory 

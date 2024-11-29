@@ -27,7 +27,6 @@ struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage, char* 
     memcpy(pcb->pageTable, returnPage->pageTable, sizeof(returnPage->pageTable));
     strcpy(pcb->scriptName, scriptName);
     enqueue(pcb);
-
     return pcb;
 }
 struct PCB *instantiatePCB(int pid, int numberLines){

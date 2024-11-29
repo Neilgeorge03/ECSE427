@@ -13,12 +13,12 @@
 #endif
 
 #define FRAME_SIZE 3
-#define MAX_PAGES 10
+#define MAX_PAGES 15
 #define MAX_FILES 100
 
 struct pagingReturn {
     int numberLines;
-    int pageTable[(FRAME_STORE_SIZE / FRAME_SIZE)];
+    int pageTable[MAX_PAGES];
 };
 struct pagingFileTracker {
     char filename[MAX_USER_INPUT];  // Stores the filename
@@ -30,6 +30,7 @@ void initBackingStore();
 int addFileToPagingArray(struct pagingReturn* page, char *filename);
 int findFileIndex(const char *filename);
 void delBackingStore();
+void updatePCB2(char *filename);
 int parseInputFrameStore(char inp[]);
 struct pagingReturn* getPageInfo(int index);
 struct pagingReturn *loadScriptBackingStore(char* dirName, char* scriptName, FILE* fp);
