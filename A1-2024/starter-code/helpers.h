@@ -1,4 +1,5 @@
 #include <dirent.h>
+#include "pcb.h"
 
 #ifndef HELPERS_H
 #define HELPERS_H
@@ -12,7 +13,7 @@ int executeInstruction(char *key);
 int isProperPolicy(char *policy);
 int executePagingInstruction(int index, int offset);
 void loadPageOnDemand(struct pagingReturn *pageReturn, int pageNumber, char *scriptName);
-void handlePageFault(struct PCB *pcb, int pageNumber);
+struct PCB* handlePageFault(struct PCB *pcb, int pageNumber);
 int evictPage();
 
 #endif

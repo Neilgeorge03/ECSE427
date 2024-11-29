@@ -5,7 +5,6 @@
 #include <string.h>
 
 int processCount = 0;
-struct DemandPagingTracker demandPageTracker = {NULL};
 struct DemandPagingQueue demandPagingQueue = {NULL};
 
 
@@ -161,7 +160,7 @@ int clearMemory(int pid, int length) {
 
 int checkScriptLoaded(char *scriptName){
     for (int i = 0; i < processCount; i++){
-        if (strcmp(processTable[i]->processName, scriptName) == 0){
+        if (strcmp((processTable[i]->processName), scriptName) == 0){
             return i;
         }
     }
@@ -198,10 +197,6 @@ int removeScriptSharedMemory(char *scriptName){
         return -1;
     }
     processTable[index]->count--;
-//    if (processTable[index]->count == 0){
-//        strcpy(processTable[index]->processName, "");
-//        return 1;
-//    }
     return 0;
 }
 
@@ -226,8 +221,8 @@ void deleteFrame(int frameIndex){
         return;
     }
     for (int i = 0; i < FRAME_SIZE; i++){
-        if (frameStore[i] != NULL) {
-            strcpy(frameStore[i], "");
+        if (strcpy(frameStore[frameIndex * FRAME_SIZE + i], "") != 0) {
+            strcpy(frameStore[frameIndex * FRAME_SIZE + i], "");
         }
     }
 }
@@ -288,7 +283,11 @@ int removeDemandQueue(int index) {
 
     struct DemandPagingTracker *targetNode = demandPagingQueue.head;
     while (targetNode->frameIndex != index) {
+        printf("targetNode->FrameIndex: %d\n", targetNode->frameIndex);
         targetNode = targetNode->next;
+        if (targetNode == NULL){
+            return 100000;
+        }
     }
 
     // If after loop above copyNode == NULL -> no such frame index exist
@@ -328,9 +327,21 @@ int removeDemandHead() {
     }
 
     int retValue = currHead->frameIndex;
-    free(currHead); 
+    free(currHead);
 
-    return retValue;  
+    return retValue;
+}
+
+void readDemandQueue() {
+    if (demandPagingQueue.head == NULL) {
+        return -1; // Queue is empty
+    }
+
+    struct DemandPagingTracker *currHead = demandPagingQueue.head;
+    while (currHead != NULL){
+        printf("currHead: %d, %s\n", currHead->frameIndex, currHead->fileName);
+        currHead = currHead->next;
+    }
 }
 
 

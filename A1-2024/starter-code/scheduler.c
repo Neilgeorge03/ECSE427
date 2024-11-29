@@ -127,11 +127,10 @@ void *workerExecuteRR(void *count_arg) {
 
 void executeRR(int count) {
     struct PCB *copyPCB;
-    char key[KEY_SIZE];
-    int errCode;
     int frameIndex;
     int offset;
     int pageNumber;
+    int LRUIndex;
 
     if (isMultithreadingMode) {
         int *count_arg = &count;
@@ -175,17 +174,16 @@ void executeRR(int count) {
                 copyPCB->pc < copyPCB->number_of_lines) {
             pageNumber = (copyPCB->pc/FRAME_SIZE);
             offset = (copyPCB->pc%FRAME_SIZE);
-
-            // check if page is properly loaded, otherwise page fault
-            if (copyPCB->pageTable[pageNumber] == -1) { 
-                handlePageFault(copyPCB, pageNumber);
-                enqueue(copyPCB); // Re-enqueue the process due to page fault
-                break; 
+            LRUIndex = removeDemandQueue(pageNumber);
+            if (copyPCB->pageTable[pageNumber] == -1) {
+                copyPCB = handlePageFault(copyPCB, pageNumber);
+                break;
             }
 
             frameIndex = copyPCB->pageTable[pageNumber];
             executePagingInstruction(frameIndex, offset);
             copyPCB->pc++;
+            addTailDemandQueue(LRUIndex, copyPCB->scriptName);
         }
 
         if (copyPCB->pid != -100 &&

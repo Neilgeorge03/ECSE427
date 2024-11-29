@@ -298,8 +298,9 @@ int exec(char *arguments[], int argumentSize) {
     // Load files into Shell memory and create PCBs
     for (int i = 1; i < argumentSize - numOfOptionalSettings; i++) {
         FILE *fp = fopen(arguments[i], "rt");
+//        printf("file: %d\n", i);
         if (fp == NULL) {
-            printf("Failed to open file, exec.\n");
+            printf("Failed to open file in exec.\n");
             return 3;
         }
         if (strcmp(policy, "RR") == 0){
@@ -309,13 +310,8 @@ int exec(char *arguments[], int argumentSize) {
             } else {
                 returnPage = loadScriptBackingStore(BACKING_STORE, arguments[i], fp);
                 addFileToPagingArray(returnPage, arguments[i]);
-                pcb = createFramePCB(fp, returnPage);
+                pcb = createFramePCB(fp, returnPage, arguments[i]);
             }
-
-            for (int j = 0; j < 2 && j < returnPage->numberLines / FRAME_SIZE + 1; j++) {
-                loadPageOnDemand(returnPage, j, arguments[i]);
-            }
-            addScriptName(pcb, arguments[i]);
         } else {
             createPCB(fp);
         }

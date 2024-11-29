@@ -34,9 +34,9 @@ struct READY_QUEUE {
 extern struct READY_QUEUE readyQueue;
 struct PCB *createBackgroundPCB();
 struct PCB *createPCB(FILE *fp);
-struct PCB *createFramePCB(FILE *fp, struct pagingReturn *returnPage);
+struct PCB *createFramePCB(FILE *fp, struct pagingReturn *returnPage, char* fileName);
 struct PCB *createDuplicatePCB(char* fileName);
-struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage);
+struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage, char* scriptName);
 struct PCB *instantiatePCB(int pid, int numberLines);
 void enqueue(struct PCB *pcb);
 struct PCB *dequeue();

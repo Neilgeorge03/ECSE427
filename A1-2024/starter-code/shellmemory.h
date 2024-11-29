@@ -25,7 +25,7 @@ int loadScriptSharedMemory(char *scriptName);
 int removeScriptSharedMemory(char *scriptName);
 char* getLine(int frameIndex, int offset);
 void deleteFrame(int frameIndex);
-
+void readDemandQueue();
 int addTailDemandQueue(int index, char* fileName);
 int removeDemandQueue(int index);
 int removeDemandHead();
