@@ -217,7 +217,9 @@ int getFreeFrame(){
 
 void deleteFrame(int frameIndex){
     if (frameIndex < 0 || frameIndex > (FRAME_STORE_SIZE/FRAME_SIZE)){
-        printf("Error: line index incorrect\n");
+
+        printf("Bool: %d", );
+        printf("DELTEFRAME: Error: line index incorrect\n");
         return;
     }
     for (int i = 0; i < FRAME_SIZE; i++){
