@@ -204,7 +204,6 @@ struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName, FIL
         if (page > 2){
             deleteFrame(frameIndex);
         } else if (offset == 0){
-            printf("frameIndex: %d\n", frameIndex);
             addTailDemandQueue(frameIndex, filePath);
         }
         offset++;

@@ -174,7 +174,9 @@ void executeRR(int count) {
                 copyPCB->pc < copyPCB->number_of_lines) {
             pageNumber = (copyPCB->pc/FRAME_SIZE);
             offset = (copyPCB->pc%FRAME_SIZE);
+            readDemandQueue();
             LRUIndex = removeDemandQueue(pageNumber);
+            printf("LRUIndex: %d\n", LRUIndex);
             if (copyPCB->pageTable[pageNumber] == -1) {
                 copyPCB = handlePageFault(copyPCB, pageNumber);
                 break;

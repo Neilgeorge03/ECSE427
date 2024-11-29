@@ -258,8 +258,9 @@ int addTailDemandQueue(int index, char* fileName) {
     newNode->fileName[sizeof(newNode->fileName) - 1] = '\0';
     newNode->next = NULL;
     newNode->prev = NULL;
-
+    readDemandQueue();
     if (demandPagingQueue.head == NULL) {
+        printf("SDFSDFS\n");
         demandPagingQueue.head = newNode;
     } else {
         // find tail 
@@ -334,7 +335,7 @@ int removeDemandHead() {
 
 void readDemandQueue() {
     if (demandPagingQueue.head == NULL) {
-        return -1; // Queue is empty
+        return; // Queue is empty
     }
 
     struct DemandPagingTracker *currHead = demandPagingQueue.head;
