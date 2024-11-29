@@ -188,7 +188,7 @@ int quit() {
         isQuitJoinThreads = 1; 
         return 0;
     }
-
+    delBackingStore();
     printf("Bye!\n");
     exit(0);
 }
@@ -306,7 +306,15 @@ int exec(char *arguments[], int argumentSize) {
         if (strcmp(policy, "RR") == 0){
             struct PCB* pcb;
             if (loadScriptSharedMemory(arguments[i]) == 1) {
-                pcb = createDuplicatePCB(arguments[i]);
+                int fileIndex = findFileIndex(arguments[i]);
+                if (fileIndex == -1){
+                    printf("Error");
+                    return -1;
+                } else {
+                    struct pagingReturn* returnPage = getPageInfo(fileIndex);
+                    pcb = createFramePCB(fp, returnPage);
+                }
+
             } else {
                 returnPage = loadScriptBackingStore(BACKING_STORE, arguments[i], fp);
                 addFileToPagingArray(returnPage, arguments[i]);
@@ -344,6 +352,7 @@ int exec(char *arguments[], int argumentSize) {
         executeRR(30);
     }
 
+    findFileIndex("P_f4");
     return 0;
 }
 
@@ -354,7 +363,11 @@ int run(char *script) {
         return 3;
     }
 
-    struct PCB *pcb = createPCB(fp);
+    struct pagingReturn* returnPage = loadScriptBackingStore(BACKING_STORE, script, fp);
+    addFileToPagingArray(returnPage, script);
+    struct PCB *pcb = createFramePCB(fp, returnPage);
+
+
     fclose(fp);
 
     // Just need to execute everything sequentially, thus FCFS is sufficient

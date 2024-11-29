@@ -11,7 +11,7 @@
 #include <sys/types.h>  // For types used by mkdir and other file-related operations
 
 int fileCount = 0;
-struct pagingFileTracker pageTracker[100];
+struct pagingFileTracker pageTracker[10];
 int parseInput(char ui[]);
 int is_interactive_mode();
 
@@ -91,26 +91,42 @@ int parseInput(char inp[]) {
             break;
         ix++;
     }
+//    char* userInput; // user's input stored here
+//    // strcpy(userInput, "exec prog1.txt prog2.txt prog3.txt RR MT");
+//    for (char *token = strtok(userInput, ";"); token != NULL;
+//         token = strtok(NULL, ";")) {
+//        errorCode = parseInput(token);
+//        if (errorCode == -1)
+//            exit(99);
+//    }
+
     errorCode = interpreter(words, w);
 
     // Freeing memory to avoid memory leaks
-     for (int i = 0; i < w; i++) {
+    for (int i = 0; i < w; i++) {
         free(words[i]);
     }
 
     return errorCode;
 }
-
-
-
+int parseInputFrameStore(char* line) {
+    int errorCode;
+    for (char *token = strtok(line, ";"); token != NULL;
+         token = strtok(NULL, ";")) {
+        errorCode = parseInput(token);
+        if (errorCode == -1)
+            exit(99);
+    }
+    return errorCode;
+}
 
 
 void initBackingStore(){
-    char *filePath;
     DIR *dir = opendir(BACKING_STORE);
     if (dir){
         // means backing store exists
         struct dirent *dirEntry;
+        char filePath[100];
         while ((dirEntry = readdir(dir)) != NULL){
             if (strcmp(dirEntry->d_name, ".") != 0 && strcmp(dirEntry->d_name, "..") != 0){
                 snprintf(filePath, sizeof(filePath), "%s/%s", BACKING_STORE, dirEntry->d_name);
@@ -218,9 +234,8 @@ struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName, FIL
 }
 
 
-
 int findFileIndex(const char *filename) {
-    for (int i = 0; i < fileCount; i++) {
+    for (int i = 0; i < MAX_PROCESSES; i++) {
         if (strcmp(pageTracker[i].filename, filename) == 0) {
             return i;  // Return the index if found
         }
@@ -244,7 +259,8 @@ int addFileToPagingArray(struct pagingReturn* page, char *filename) {
         }
     }
     strcpy(pageTracker[fileCount].filename, filename);
-    pageTracker[fileCount++].pageData = page;
+    pageTracker[fileCount].pageData = page;
+    fileCount++;
     return 0;
 }
 

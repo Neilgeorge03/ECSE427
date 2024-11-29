@@ -95,7 +95,7 @@ int executePagingInstruction(int index, int offset) {
     while (fgets(line, sizeof(line), fp)) {
         if (currentLine == offset) {
             fclose(fp);  // Close the file before returning
-            int errCode = parseInput(line);
+            int errCode = parseInputFrameStore(line);
             if (errCode == -1) {
                 printf("Fatal error during instruction execution occured.\n");
                 return -1;
