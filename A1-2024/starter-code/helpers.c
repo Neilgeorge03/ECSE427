@@ -164,11 +164,15 @@ int evictPage() {
 
 struct PCB *handlePageFault(struct PCB *pcb, int pageNumber) {
     int frameIndex = getFreeFrame();
+
     if (frameIndex == -1) { // No free frame; evict a page
+
         frameIndex = evictPage();
 
-        removePageInfo(pcb->scriptName, frameIndex);
-        return updatePageInfo(pcb, pcb->scriptName, pageNumber, frameIndex);
+        removePageInfo(frameIndex);
+
+        pcb = updatePageInfo(pcb, pcb->scriptName, pageNumber, frameIndex);
+        return pcb;
     }
 
     printf("Page fault!\n");

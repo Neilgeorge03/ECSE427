@@ -168,6 +168,11 @@ void executeRR(int count) {
         }
     }
 
+    struct PCB* current = readyQueue.head;
+    while (current != NULL){
+        current = current->next;
+    }
+
     // Keep going until readyQueue is empty
     while (readyQueue.head != NULL) {
         copyPCB = dequeue();
@@ -186,6 +191,8 @@ void executeRR(int count) {
                copyPCB->pc < copyPCB->number_of_lines) {
             pageNumber = (copyPCB->pc / FRAME_SIZE);
             offset = (copyPCB->pc % FRAME_SIZE);
+
+
             if (copyPCB->pageTable[pageNumber] == -1) {
                 copyPCB = handlePageFault(copyPCB, pageNumber);
                 break;

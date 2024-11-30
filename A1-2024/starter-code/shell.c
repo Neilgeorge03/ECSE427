@@ -258,8 +258,8 @@ int addFileToPagingArray(struct pagingReturn *page, char *filename) {
     return 0;
 }
 
-void removePageInfo(char *filename, int removeIndex) {
-    char *progPath = frameStore[removeIndex];
+void removePageInfo(int removeIndex) {
+    char *progPath = frameStore[removeIndex*FRAME_SIZE];
     char progName[100];
     int fileIndex;
     int progFrameIndex;
@@ -275,7 +275,6 @@ void removePageInfo(char *filename, int removeIndex) {
 
             fileIndex = findFileIndex(progName);
             progFrameIndex = atoi(progNameEnd + 5);
-
             pageTracker[fileIndex].pageData->pageTable[progFrameIndex] = -1;
 
             updatePCB2(progName);
@@ -287,6 +286,7 @@ struct PCB *updatePageInfo(struct PCB *pcb, char *filename, int pageTableIndex, 
     int index = findFileIndex(filename);
     char newFilename[256];
     pageTracker[index].pageData->pageTable[pageTableIndex] = frameStoreIndex;
+
     addTailDemandQueue(frameStoreIndex, filename);
     for (int offset = 0;
          offset < FRAME_SIZE && pcb->pc + offset < pcb->number_of_lines;
@@ -301,16 +301,16 @@ struct PCB *updatePageInfo(struct PCB *pcb, char *filename, int pageTableIndex, 
 struct PCB *updatePCB(struct PCB *pcb, char *filename) {
     struct PCB *current = getPCBHead();
     int index = findFileIndex(filename);
-
     while (current != NULL) {
         if (strcmp(filename, current->scriptName) == 0) {
-            memcpy(current->pageTable, &pageTracker[index],
-                   sizeof(pageTracker[index]));
+            memcpy(current->pageTable, pageTracker[index].pageData->pageTable,
+                   sizeof(current->pageTable));
         }
         current = current->next;
     }
     memcpy(pcb->pageTable, pageTracker[index].pageData->pageTable,
            sizeof(pcb->pageTable));
+
     return pcb;
 }
 
@@ -321,8 +321,11 @@ void updatePCB2(char *filename) {
 
     while (current != NULL) {
         if (strcmp(filename, current->scriptName) == 0) {
-            memcpy(current->pageTable, &pageTracker[index],
-                   sizeof(pageTracker[index]));
+            memcpy(current->pageTable, pageTracker[index].pageData->pageTable,
+                   sizeof(current->pageTable));
+
+            strcpy(current->scriptName, filename);
+
         }
         current = current->next;
     }
