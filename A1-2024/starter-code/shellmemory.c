@@ -208,7 +208,7 @@ void initFrameStore(){
 
 int getFreeFrame(){
     for (int i = 0; i < (FRAME_STORE_SIZE/FRAME_SIZE); i++){
-        if (strcmp(frameStore[i*FRAME_SIZE], "") == 0 and i+2 < FRAME_STORE_SIZE){
+        if (strcmp(frameStore[i*FRAME_SIZE], "") == 0 && i+2 < FRAME_STORE_SIZE){
             return i;
         }
     }
