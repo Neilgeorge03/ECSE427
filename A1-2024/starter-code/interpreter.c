@@ -188,7 +188,17 @@ int quit() {
         isQuitJoinThreads = 1;
         return 0;
     }
+    // Erase all elements in the backingStore
     delBackingStore();
+    // Free all PCB in case it wasn't freed earlier
+    struct PCB* current = readyQueue.head;
+    struct PCB* temp;
+    while (current != NULL){
+        temp = current;
+        current = current->next;
+        freePCB(temp);
+    }
+
     printf("Bye!\n");
     exit(0);
 }
@@ -305,22 +315,26 @@ int exec(char *arguments[], int argumentSize) {
             return 3;
         }
         if (strcmp(policy, "RR") == 0) {
-            struct PCB *pcb;
+            // Only care about RR since we don't test anything else
             if (loadScriptSharedMemory(arguments[i]) == 1) {
+                // If the script has been loaded previously we can used the saved info
+                // This makes it easier such that I don't have to reread all the files
                 int fileIndex = findFileIndex(arguments[i]);
                 if (fileIndex == -1) {
                     printf("Error");
                     return -1;
                 } else {
                     struct pagingReturn *returnPage = getPageInfo(fileIndex);
-                    pcb = createFramePCB(fp, returnPage, arguments[i]);
+                    // returnPage contains info we'd need in PCB such as numberLines and pageTable
+                    createFramePCB(fp, returnPage, arguments[i]);
                 }
 
             } else {
+                // New script so we can create it into the main array we have all pageTables
                 returnPage =
                     loadScriptBackingStore(BACKING_STORE, arguments[i], fp);
                 addFileToPagingArray(returnPage, arguments[i]);
-                pcb = createFramePCB(fp, returnPage, arguments[i]);
+                createFramePCB(fp, returnPage, arguments[i]);
             }
         } else {
             createPCB(fp);
@@ -357,8 +371,11 @@ int exec(char *arguments[], int argumentSize) {
 }
 
 int run(char *script) {
+    // Redo the same stuff as RR
+    // Instead of doing multiple files we already know the script name
+    // We can do the same logic of making a new returnPage if it hasn't been made before
+    // Otherwise we can extract the returnPage from previous data
     struct pagingReturn *returnPage;
-    struct PCB *pcb;
     FILE *fp = fopen(script, "rt");
     if (fp == NULL) {
         printf("Failed to open file.\n");
@@ -372,13 +389,13 @@ int run(char *script) {
             return -1;
         } else {
             struct pagingReturn *returnPage = getPageInfo(fileIndex);
-            pcb = createFramePCB(fp, returnPage, script);
+            createFramePCB(fp, returnPage, script);
         }
 
     } else {
         returnPage = loadScriptBackingStore(BACKING_STORE, script, fp);
         addFileToPagingArray(returnPage, script);
-        pcb = createFramePCB(fp, returnPage, script);
+        createFramePCB(fp, returnPage, script);
     }
 
     fclose(fp);

@@ -103,6 +103,9 @@ int parseInput(char inp[]) {
     return errorCode;
 }
 int parseInputFrameStore(char *line) {
+    // In case there are one-liners we need to split the string
+    // This is usually done in the parseInput
+    // We can parse the string by ';'
     int errorCode;
     for (char *token = strtok(line, ";"); token != NULL;
          token = strtok(NULL, ";")) {
@@ -114,6 +117,9 @@ int parseInputFrameStore(char *line) {
 }
 
 void initBackingStore() {
+    // Init backingStore
+    // Delete anything in there previously
+    // If no backing Store we cna make it
     DIR *dir = opendir(BACKING_STORE);
     if (dir) {
         // means backing store exists
@@ -134,11 +140,13 @@ void initBackingStore() {
 }
 
 void delBackingStore() {
-    char *filePath;
+    // Deleet everything in the backing store and then delete the directory
+
     DIR *dir = opendir(BACKING_STORE);
     if (dir) {
         // means backing store exists
         struct dirent *dirEntry;
+        char filePath[100];
         while ((dirEntry = readdir(dir)) != NULL) {
             if (strcmp(dirEntry->d_name, ".") != 0 &&
                 strcmp(dirEntry->d_name, "..") != 0) {
@@ -158,7 +166,6 @@ struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName, FIL
     int lineCount = 0;
     int offset = 0;
     int frameIndex = -1;
-    int pageTableIndex = 0;
     char line[MAX_USER_INPUT];
     char filePath[MAX_USER_INPUT];
     FILE *backingStoreFile = NULL;
@@ -171,12 +178,13 @@ struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName, FIL
     }
     memset(pageReturn, 0, sizeof(struct pagingReturn));
 
+    // make all files for backign store
     while (fgets(line, sizeof(line), fp)) {
         if (lineCount % FRAME_SIZE == 0) { // New page logic
             offset = 0;
             frameIndex = getFreeFrame();
             int maxPages = MAX_PAGES;
-            if (backingStoreFile != NULL)
+            if (backingStoreFile != NULL) // if previous file is open we close it before opening new one
                 fclose(backingStoreFile);
 
             // Create a new backing store file for this page
@@ -197,6 +205,7 @@ struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName, FIL
             }
 
             if (page > 1 || frameIndex == -1) {
+                // anyhing past the 2nd page we need to remove it
                 pageReturn->pageTable[page] = -1;
             } else { // Add frameIndex to page table
                 pageReturn->pageTable[page] = frameIndex;
@@ -212,6 +221,7 @@ struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName, FIL
             loadPageFrameStore(frameIndex * FRAME_SIZE + offset, filePath);
         }
         if (page > 2) {
+            // if page is outside limit of 2, we can delete it from the frame
             deleteFrame(frameIndex);
         } else if (offset == 0) {
             addTailDemandQueue(frameIndex, filePath);
@@ -265,6 +275,8 @@ void removePageInfo(int removeIndex) {
     int progFrameIndex;
     char *progStart = strstr(progPath, "/prog");
 
+    // Get both prog name and page number, by doing so we know which files to delete
+    // Fuck C this could be so much easier like wtf man
     if (progStart != NULL) {
         progStart++;
 
@@ -283,6 +295,7 @@ void removePageInfo(int removeIndex) {
 }
 
 struct PCB *updatePageInfo(struct PCB *pcb, char *filename, int pageTableIndex, int frameStoreIndex) {
+    // Update all pageTables with new page table
     int index = findFileIndex(filename);
     char newFilename[256];
     pageTracker[index].pageData->pageTable[pageTableIndex] = frameStoreIndex;
@@ -299,6 +312,8 @@ struct PCB *updatePageInfo(struct PCB *pcb, char *filename, int pageTableIndex, 
 }
 
 struct PCB *updatePCB(struct PCB *pcb, char *filename) {
+
+    // update the PCB with the new page table sicne we changed it
     struct PCB *current = getPCBHead();
     int index = findFileIndex(filename);
     while (current != NULL) {
@@ -316,6 +331,7 @@ struct PCB *updatePCB(struct PCB *pcb, char *filename) {
 
 // TODO Better rename?
 void updatePCB2(char *filename) {
+    // Same as before but can't name it better sorry bbg
     struct PCB *current = getPCBHead();
     int index = findFileIndex(filename);
 

@@ -14,6 +14,9 @@ void enqueueHead(struct PCB *pcb);
 // {pid}_0 set by the method set_value in shellmemory.h.
 // dynamically allocated pcb -> needs to be freed
 struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage, char *scriptName) {
+    // Instead of getting the number of lines only
+    // We can get the scriptName and pageTable too
+    // By doing this we can keep track of relevant info
     struct PCB *pcb = (struct PCB *)malloc(sizeof(struct PCB));
     if (!pcb) {
         printf("Failed to allocate memory for PCB.\n");
@@ -55,11 +58,14 @@ struct PCB *createPCB(FILE *fp) {
 }
 
 struct PCB *createFramePCB(FILE *fp, struct pagingReturn *returnPage, char *fileName) {
+    // Same as other createPCB but no need to load into memory since we already have it in frameStore
+    // and already know the number of lines
     int pid = generatePID();
     return instantiateFramePCB(pid, returnPage, fileName);
 }
 
 struct PCB *createDuplicatePCB(char *fileName) {
+    // If we can duplicate the PCB we do that since I'm lazy and the info is the same other than the PC
     int pid = generatePID();
     struct PCB *current = readyQueue.head;
 
@@ -128,12 +134,17 @@ struct PCB *dequeue() {
 }
 
 void freePCB(struct PCB *pcb) {
+    if (pcb == NULL) {
+        return;  // Nothing to free if PCB is NULL
+    }
+
     if (removeScriptSharedMemory(pcb->scriptName) == 1) {
         for (int i = 0; i < (FRAME_STORE_SIZE / FRAME_SIZE); i++) {
             deleteFrame(pcb->pageTable[i]);
         }
-        free(pcb);
     }
+    free(pcb);
+
 }
 
 void swap(struct PCB *min, struct PCB *current) {

@@ -83,7 +83,10 @@ int executeInstruction(char *key) {
 }
 
 int executePagingInstruction(int index, int offset) {
+    // Find the line to execute for the program
     char *fileName = getLine(index, offset);
+
+    // Find the file and open it to read
     FILE *fp = fopen(fileName, "r");
     if (fp == NULL) {
         printf("Can't open up page\n");
@@ -94,9 +97,10 @@ int executePagingInstruction(int index, int offset) {
 
     // Read lines sequentially
     while (fgets(line, sizeof(line), fp)) {
+        // Iterate through the file until we get to the desired offset, this is the line we run
         if (currentLine == offset) {
             fclose(fp); // Close the file before returning
-            int errCode = parseInputFrameStore(line);
+            int errCode = parseInputFrameStore(line); // Run the program
             if (errCode == -1) {
                 printf("Fatal error during instruction execution occured.\n");
                 return -1;
@@ -106,7 +110,7 @@ int executePagingInstruction(int index, int offset) {
         currentLine++;
     }
     fclose(fp);
-    printf("Couldn't find offset %d in file %s\n", offset, fileName);
+    printf("Couldn't find offset %d in file %s\n", offset, fileName); // If we reach end of file without offset
     return -1;
 }
 
@@ -119,57 +123,33 @@ int isProperPolicy(char *policy) {
     return 1;
 }
 
-void loadPageOnDemand(struct pagingReturn *pageReturn, int pageNumber, char *scriptName) {
-    if (pageReturn->pageTable[pageNumber] != -1) {
-        return; // Page is already loaded or invalid page number
-    }
-
-    int frameIndex = getFreeFrame();
-    if (frameIndex == -1) {
-        frameIndex = evictPage();
-    }
-
-    char filePath[MAX_USER_INPUT];
-    snprintf(filePath, sizeof(filePath), "%s/%s_page%d", BACKING_STORE, scriptName, pageNumber);
-    FILE *fp = fopen(filePath, "r");
-    if (fp == NULL) {
-        printf("Error: Cannot load page %d for %s.\n", pageNumber, scriptName);
-        return;
-    }
-
-    char line[MAX_USER_INPUT];
-    for (int i = 0; i < FRAME_SIZE && fgets(line, sizeof(line), fp); i++) {
-        strcpy(frameStore[frameIndex * FRAME_SIZE + i], line);
-    }
-    fclose(fp);
-
-    pageReturn->pageTable[pageNumber] = frameIndex; // Update page table
-}
-
 int evictPage() {
+    // Find the last used frame to erase
     // LRU Frame
-    int victimFrame = removeDemandHead();
-    printf("Page fault! Victim page contents:\n\n");
+    int victimFrame = removeDemandHead(); // Get the frame index
+    printf("Page fault! Victim page contents:\n\n"); // 2 Line breaks cause we are required
     FILE *fp = fopen(frameStore[victimFrame * FRAME_SIZE], "r");
     int i = 0;
     char line[MAX_USER_INPUT];
     while (fgets(line, sizeof(line), fp) && i < FRAME_SIZE) {
+        // print all the lines erased
         printf("%s", line);
-        strcpy(frameStore[victimFrame * FRAME_SIZE + i++], ""); // Clear frameStore
+        memset(frameStore[victimFrame * FRAME_SIZE + i++], 0, sizeof(frameStore[victimFrame * FRAME_SIZE + i++]));
+        // Clear frameStore to know
     }
 
     printf("\nEnd of victim page contents.\n");
-    return victimFrame;
+    return victimFrame; // Return the new freed up frame Index
 }
 
 struct PCB *handlePageFault(struct PCB *pcb, int pageNumber) {
-    int frameIndex = getFreeFrame();
+    int frameIndex = getFreeFrame(); // Try to load new page into frame index
 
     if (frameIndex == -1) { // No free frame; evict a page
 
         frameIndex = evictPage();
 
-        removePageInfo(frameIndex);
+        removePageInfo(frameIndex); // Remove elements in the pageTable array with this index
 
         pcb = updatePageInfo(pcb, pcb->scriptName, pageNumber, frameIndex);
         return pcb;
@@ -177,5 +157,6 @@ struct PCB *handlePageFault(struct PCB *pcb, int pageNumber) {
 
     printf("Page fault!\n");
 
+    // Update all PCBs related to it such that we know all instances are updated
     return updatePageInfo(pcb, pcb->scriptName, pageNumber, frameIndex);
 }

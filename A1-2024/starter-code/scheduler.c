@@ -24,6 +24,9 @@ int executeFCFS() {
     int pageNumber;
     int LRUIndex;
 
+
+    // Same logic as the RR implementation but we only do one iteration
+    // We need to read everything in the same prog file name
     do {
         copyPCB = dequeue();
 
@@ -35,13 +38,14 @@ int executeFCFS() {
         }
         // pc here refers to "program counter"
         while (copyPCB->pid != -100 && copyPCB->pc < copyPCB->number_of_lines) {
+            // pageNumber is the frame index which can be found by flooring with 3
             pageNumber = (copyPCB->pc / FRAME_SIZE);
+            // offset can be found through the remainder of %3
             offset = (copyPCB->pc % FRAME_SIZE);
-            if (copyPCB->pageTable[pageNumber] == -1) {
+            if (copyPCB->pageTable[pageNumber] == -1) { // check if it's in the frameStore or add it
                 copyPCB = handlePageFault(copyPCB, pageNumber);
-//                break;
             }
-            LRUIndex = removeDemandQueue(copyPCB->pageTable[pageNumber]);
+            LRUIndex = removeDemandQueue(copyPCB->pageTable[pageNumber]); // LRU index of the frame
             frameIndex = copyPCB->pageTable[pageNumber];
             executePagingInstruction(frameIndex, offset);
             addTailDemandQueue(LRUIndex, copyPCB->scriptName);
