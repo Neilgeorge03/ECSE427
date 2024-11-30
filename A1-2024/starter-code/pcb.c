@@ -13,8 +13,7 @@ void enqueueHead(struct PCB *pcb);
 // this method creates the process control block for a script beginning with key
 // {pid}_0 set by the method set_value in shellmemory.h.
 // dynamically allocated pcb -> needs to be freed
-struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage,
-                                char *scriptName) {
+struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage, char *scriptName) {
     struct PCB *pcb = (struct PCB *)malloc(sizeof(struct PCB));
     if (!pcb) {
         printf("Failed to allocate memory for PCB.\n");
@@ -31,6 +30,7 @@ struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage,
     enqueue(pcb);
     return pcb;
 }
+
 struct PCB *instantiatePCB(int pid, int numberLines) {
     struct PCB *pcb = (struct PCB *)malloc(sizeof(struct PCB));
     if (!pcb) {
@@ -53,8 +53,8 @@ struct PCB *createPCB(FILE *fp) {
     int number_of_lines = loadScriptInMemory(fp, pid);
     return instantiatePCB(pid, number_of_lines);
 }
-struct PCB *createFramePCB(FILE *fp, struct pagingReturn *returnPage,
-                           char *fileName) {
+
+struct PCB *createFramePCB(FILE *fp, struct pagingReturn *returnPage, char *fileName) {
     int pid = generatePID();
     return instantiateFramePCB(pid, returnPage, fileName);
 }

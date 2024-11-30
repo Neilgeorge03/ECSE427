@@ -192,6 +192,9 @@ void executeRR(int count) {
                 copyPCB = handlePageFault(copyPCB, pageNumber);
                 break;
             }
+            // Does LRU page replacement, removes the page from the LRU queue
+            // and executes the instruction, and re-adds the page to the queue
+            // as most recently used and advances the pc. 
             LRUIndex = removeDemandQueue(copyPCB->pageTable[pageNumber]);
             frameIndex = copyPCB->pageTable[pageNumber];
             executePagingInstruction(frameIndex, offset);

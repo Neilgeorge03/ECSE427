@@ -201,6 +201,8 @@ void initFrameStore() {
     }
 }
 
+// Gets a free frame. Searches through linearly and returns the first
+// "hole".
 int getFreeFrame() {
     for (int i = 0; i < (FRAME_STORE_SIZE / FRAME_SIZE); i++) {
         if ((strcmp(frameStore[i * FRAME_SIZE], "") == 0) &&
@@ -230,6 +232,8 @@ void deleteFrame(int frameIndex) {
     }
 }
 
+// Takes the frameIndex and offset (obtained from the page) to find
+// the line that has been stored. 
 char *getLine(int frameIndex, int offset) {
     if (frameIndex < 0 || frameIndex > (FRAME_STORE_SIZE / FRAME_SIZE)) {
         printf("GET LINE: %d", frameIndex);
@@ -247,7 +251,10 @@ void loadPageFrameStore(int index, char *fileName) {
     strcpy(frameStore[index], fileName);
 }
 
+// Adds a Node to the end of the DemandQueue.
 int addTailDemandQueue(int index, char *fileName) {
+    // Using heap allocation as these data structures must persists, even after the
+    // function ends.
     struct DemandPagingTracker *newNode = (struct DemandPagingTracker *)malloc(
         sizeof(struct DemandPagingTracker));
     if (newNode == NULL) {
@@ -260,6 +267,7 @@ int addTailDemandQueue(int index, char *fileName) {
     newNode->fileName[sizeof(newNode->fileName) - 1] = '\0';
     newNode->next = NULL;
     newNode->prev = NULL;
+
     if (demandPagingQueue.head == NULL) {
         demandPagingQueue.head = newNode;
     } else {
@@ -276,6 +284,7 @@ int addTailDemandQueue(int index, char *fileName) {
     return newNode->frameIndex;
 }
 
+// Removes a node from the DLL DemandQueue.
 int removeDemandQueue(int index) {
     if (demandPagingQueue.head == NULL) {
         return -1;
@@ -328,6 +337,7 @@ int removeDemandHead() {
     return retValue;
 }
 
+// For debugging purposes
 void readDemandQueue() {
     if (demandPagingQueue.head == NULL) {
         return; // Queue is empty

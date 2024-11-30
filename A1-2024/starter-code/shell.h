@@ -16,10 +16,13 @@
 #define MAX_PAGES 15
 #define MAX_FILES 100
 
+// This structure is used as a way to encapsulate information and return 
+// more than one information. 
 struct pagingReturn {
     int numberLines;
     int pageTable[MAX_PAGES];
 };
+
 struct pagingFileTracker {
     char filename[MAX_USER_INPUT]; // Stores the filename
     struct pagingReturn *pageData; // The paging return data for this file

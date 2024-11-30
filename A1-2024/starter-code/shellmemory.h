@@ -39,11 +39,16 @@ struct memory_struct {
     char *var;
     char *value;
 };
+
 struct sharedProcess {
     char processName[100];
     int count;
 };
 
+// This structure is used to keep track of relevant information
+// concerning the frames themselves, and the frame before and after it.
+// This is to implement the LRU, and the first frame (head) is the least
+// recently used one, which has priority to be evicted. 
 struct DemandPagingTracker {
     int frameIndex;
     char fileName[100];

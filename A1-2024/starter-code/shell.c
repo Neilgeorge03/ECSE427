@@ -153,8 +153,7 @@ void delBackingStore() {
 }
 
 // TODO
-struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName,
-                                            FILE *fp) {
+struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName, FILE *fp) {
     int page = 0;
     int lineCount = 0;
     int offset = 0;
@@ -237,6 +236,7 @@ int findFileIndex(const char *filename) {
     }
     return -1; // File not found
 }
+
 struct pagingReturn *getPageInfo(int index) {
     return pageTracker[index].pageData;
 }
@@ -263,7 +263,6 @@ void removePageInfo(char *filename, int removeIndex) {
     char progName[100];
     int fileIndex;
     int progFrameIndex;
-    //    printf("Before scanf\n");
     char *progStart = strstr(progPath, "/prog");
 
     if (progStart != NULL) {
@@ -284,8 +283,7 @@ void removePageInfo(char *filename, int removeIndex) {
     }
 }
 
-struct PCB *updatePageInfo(struct PCB *pcb, char *filename, int pageTableIndex,
-                           int frameStoreIndex) {
+struct PCB *updatePageInfo(struct PCB *pcb, char *filename, int pageTableIndex, int frameStoreIndex) {
     int index = findFileIndex(filename);
     char newFilename[256];
     pageTracker[index].pageData->pageTable[pageTableIndex] = frameStoreIndex;
@@ -316,6 +314,7 @@ struct PCB *updatePCB(struct PCB *pcb, char *filename) {
     return pcb;
 }
 
+// TODO Better rename?
 void updatePCB2(char *filename) {
     struct PCB *current = getPCBHead();
     int index = findFileIndex(filename);

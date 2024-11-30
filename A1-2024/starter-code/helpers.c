@@ -119,8 +119,7 @@ int isProperPolicy(char *policy) {
     return 1;
 }
 
-void loadPageOnDemand(struct pagingReturn *pageReturn, int pageNumber,
-                      char *scriptName) {
+void loadPageOnDemand(struct pagingReturn *pageReturn, int pageNumber, char *scriptName) {
     if (pageReturn->pageTable[pageNumber] != -1) {
         return; // Page is already loaded or invalid page number
     }
