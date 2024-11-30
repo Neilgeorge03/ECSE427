@@ -27,7 +27,6 @@ struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage, char* 
     memcpy(pcb->pageTable, returnPage->pageTable, sizeof(returnPage->pageTable));
     strcpy(pcb->scriptName, scriptName);
     enqueue(pcb);
-
     return pcb;
 }
 struct PCB *instantiatePCB(int pid, int numberLines){
@@ -131,8 +130,8 @@ void freePCB(struct PCB *pcb) {
         for (int i = 0; i < (FRAME_STORE_SIZE / FRAME_SIZE); i++){
             deleteFrame(pcb->pageTable[i]);
         }
+        free(pcb);
     }
-    free(pcb);
 }
 
 void swap(struct PCB *min, struct PCB *current) {

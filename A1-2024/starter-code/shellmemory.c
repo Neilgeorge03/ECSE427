@@ -208,7 +208,7 @@ void initFrameStore(){
 
 int getFreeFrame(){
     for (int i = 0; i < (FRAME_STORE_SIZE/FRAME_SIZE); i++){
-        if (strcmp(frameStore[i*FRAME_SIZE], "") == 0 && i+2 < FRAME_STORE_SIZE){
+        if ((strcmp(frameStore[i*FRAME_SIZE], "") == 0) && (i+2 < FRAME_STORE_SIZE)){
             return i;
         }
     }
@@ -216,11 +216,14 @@ int getFreeFrame(){
 }
 
 void deleteFrame(int frameIndex){
+    if (frameIndex == -1){
+        return;
+    }
     if (frameIndex < 0 || frameIndex > (FRAME_STORE_SIZE/FRAME_SIZE)){
         printf("Error: line index incorrect\n");
         return;
     }
-    for (int i = 0; (i < FRAME_SIZE) && (frameIndex * FRAME_SIZE + i < FRAME_STORE_SIZE); i++){
+    for (int i = 0; (i < FRAME_SIZE) && (frameIndex * FRAME_SIZE + i < FRAME_STORE_SIZE); i++) {
         if (frameStore[frameIndex * FRAME_SIZE + i] != NULL) {
             strcpy(frameStore[frameIndex * FRAME_SIZE + i], "");
         }
@@ -229,6 +232,7 @@ void deleteFrame(int frameIndex){
 
 char* getLine(int frameIndex, int offset){
     if (frameIndex < 0 || frameIndex > (FRAME_STORE_SIZE/FRAME_SIZE)){
+        printf("GET LINE: %d", frameIndex);
         printf("Error: line index incorrect\n");
         return NULL;
     } else if (offset < 0 || offset > FRAME_SIZE){
@@ -247,10 +251,10 @@ void loadPageFrameStore(int index, char* fileName){
 
 
 int addTailDemandQueue(int index, char* fileName) {
-    struct DemandPagingTracker *newNode = (struct DemandPagingTracker *)malloc(sizeof(struct DemandPagingTracker));    
+    struct DemandPagingTracker *newNode = (struct DemandPagingTracker *)malloc(sizeof(struct DemandPagingTracker));
     if (newNode == NULL) {
         return -1;
-    } 
+    }
 
     newNode->frameIndex = index;
     strncpy(newNode->fileName, fileName, sizeof(newNode->fileName));
@@ -261,7 +265,7 @@ int addTailDemandQueue(int index, char* fileName) {
     if (demandPagingQueue.head == NULL) {
         demandPagingQueue.head = newNode;
     } else {
-        // find tail 
+        // find tail
         struct DemandPagingTracker *currNode = demandPagingQueue.head;
         while (currNode->next != NULL) {
             currNode = currNode->next;
@@ -294,14 +298,14 @@ int removeDemandQueue(int index) {
         // replacig prev node with target next
         targetNode->prev->next = targetNode->next;
     } else {
-        // removing the head 
+        // removing the head
         demandPagingQueue.head = targetNode->next;
     }
-    
+
     if (targetNode->next != NULL) {
         // replacing next node with target prev
         targetNode->next->prev = targetNode->prev;
-    } 
+    }
 
     int retValue = targetNode->frameIndex;
     free(targetNode);

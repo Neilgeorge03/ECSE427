@@ -31,10 +31,10 @@ void readDemandQueue();
 int addTailDemandQueue(int index, char* fileName);
 int removeDemandQueue(int index);
 int removeDemandHead();
+int checkScriptLoaded(char *scriptName);
 
 
 extern char frameStore[FRAME_STORE_SIZE][100];
-int checkScriptLoaded(char *scriptName);
 
 struct memory_struct {
     char *var;

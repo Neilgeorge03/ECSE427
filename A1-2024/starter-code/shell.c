@@ -11,13 +11,14 @@
 #include <sys/types.h>  // For types used by mkdir and other file-related operations
 
 int fileCount = 0;
-struct pagingFileTracker pageTracker[10];
+struct pagingFileTracker pageTracker[MAX_PROCESSES];
 int parseInput(char ui[]);
 int is_interactive_mode();
 
 // Start of everything
 int main(int argc, char *argv[]) {
-    printf("Frame Store Size = X; Variable Store Size = Y\n");
+    printf("Frame Store Size = %d; Variable Store Size = %d\n", FRAME_STORE_SIZE, VARIABLE_STORE_SIZE);
+    // help();
 
     char prompt = '$';              // Shell prompt
     char userInput[MAX_USER_INPUT]; // user's input stored here
@@ -91,15 +92,6 @@ int parseInput(char inp[]) {
             break;
         ix++;
     }
-//    char* userInput; // user's input stored here
-//    // strcpy(userInput, "exec prog1.txt prog2.txt prog3.txt RR MT");
-//    for (char *token = strtok(userInput, ";"); token != NULL;
-//         token = strtok(NULL, ";")) {
-//        errorCode = parseInput(token);
-//        if (errorCode == -1)
-//            exit(99);
-//    }
-
     errorCode = interpreter(words, w);
 
     // Freeing memory to avoid memory leaks
@@ -198,25 +190,21 @@ struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName, FIL
                 return NULL;
             }
 
-//            if (frameIndex == -1) {
-//                printf("No free frame available\n");
-//                free(pageReturn); // Clean up allocated memory
-//                if (backingStoreFile != NULL) fclose(backingStoreFile);
-//                return NULL;
-//            }
             if (page > 1 || frameIndex == -1) {
                 pageReturn->pageTable[page] = -1;
             } else { // Add frameIndex to page table
                 pageReturn->pageTable[page] = frameIndex;
             }
             page++;
-
         }
 
         // Write to backing store file
         fprintf(backingStoreFile, "%s", line);
         // Load the page into the frame store
-        loadPageFrameStore(frameIndex * FRAME_SIZE + offset, filePath);
+
+        if (frameIndex >= 0 && frameIndex < FRAME_STORE_SIZE/FRAME_SIZE){
+            loadPageFrameStore(frameIndex * FRAME_SIZE + offset, filePath);
+        }
         if (page > 2){
             deleteFrame(frameIndex);
         } else if (offset == 0){
@@ -266,8 +254,29 @@ int addFileToPagingArray(struct pagingReturn* page, char *filename) {
 
 
 void removePageInfo(char* filename, int removeIndex){
-    int index = findFileIndex(filename);
-    pageTracker[index].pageData->pageTable[removeIndex] = -1;
+    char* progPath = frameStore[removeIndex];
+    char progName[100];
+    int fileIndex;
+    int progFrameIndex;
+//    printf("Before scanf\n");
+    char* progStart = strstr(progPath, "/prog");
+
+    if (progStart != NULL){
+        progStart++;
+
+        char* progNameEnd = strstr(progStart, "_page");
+        if (progNameEnd != NULL){
+            strncpy(progName, progStart, progNameEnd - progStart);
+            progName[progNameEnd - progStart] = '\0';
+
+            fileIndex = findFileIndex(progName);
+            progFrameIndex = atoi(progNameEnd + 5);
+
+            pageTracker[fileIndex].pageData->pageTable[progFrameIndex] = -1;
+
+            updatePCB2(progName);
+        }
+    }
 }
 
 struct PCB* updatePageInfo(struct PCB* pcb, char* filename, int pageTableIndex, int frameStoreIndex){
@@ -289,10 +298,21 @@ struct PCB* updatePCB(struct PCB* pcb, char *filename){
     while(current != NULL){
         if (strcmp(filename, current->scriptName) == 0){
             memcpy(current->pageTable, &pageTracker[index], sizeof(pageTracker[index]));
-            return current;
         }
         current = current->next;
     }
     memcpy(pcb->pageTable, pageTracker[index].pageData->pageTable, sizeof(pcb->pageTable));
     return pcb;
+}
+
+void updatePCB2(char *filename){
+    struct PCB* current = getPCBHead();
+    int index = findFileIndex(filename);
+
+    while(current != NULL){
+        if (strcmp(filename, current->scriptName) == 0){
+            memcpy(current->pageTable, &pageTracker[index], sizeof(pageTracker[index]));
+        }
+        current = current->next;
+    }
 }
