@@ -21,20 +21,22 @@ struct pagingReturn {
     int pageTable[MAX_PAGES];
 };
 struct pagingFileTracker {
-    char filename[MAX_USER_INPUT];  // Stores the filename
-    struct pagingReturn* pageData;  // The paging return data for this file
+    char filename[MAX_USER_INPUT]; // Stores the filename
+    struct pagingReturn *pageData; // The paging return data for this file
 };
 
 int parseInput(char inp[]);
 void initBackingStore();
-int addFileToPagingArray(struct pagingReturn* page, char *filename);
+int addFileToPagingArray(struct pagingReturn *page, char *filename);
 int findFileIndex(const char *filename);
 void delBackingStore();
 void updatePCB2(char *filename);
 int parseInputFrameStore(char inp[]);
-struct pagingReturn* getPageInfo(int index);
-struct pagingReturn *loadScriptBackingStore(char* dirName, char* scriptName, FILE* fp);
-void removePageInfo(char* filename, int removeIndex);
-struct PCB* updatePageInfo(struct PCB* pcb, char* filename, int pageTableIndex, int frameStoreIndex);
-struct PCB* updatePCB(struct PCB* pcb, char *filename);
+struct pagingReturn *getPageInfo(int index);
+struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName,
+                                            FILE *fp);
+void removePageInfo(char *filename, int removeIndex);
+struct PCB *updatePageInfo(struct PCB *pcb, char *filename, int pageTableIndex,
+                           int frameStoreIndex);
+struct PCB *updatePCB(struct PCB *pcb, char *filename);
 #endif

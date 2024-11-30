@@ -1,6 +1,6 @@
+#include "pcb.h"
 #include "scheduler.h"
 #include "shell.h"
-#include "pcb.h"
 #include "shellmemory.h"
 #include <ctype.h>
 #include <dirent.h>
@@ -30,7 +30,7 @@ int myLsFilter(const struct dirent *namelist) {
  * namelist_one equal to namelist_two -> return  0
  */
 int myLsSort(const struct dirent **namelist_one,
-               const struct dirent **namelist_two) {
+             const struct dirent **namelist_two) {
     const char *name_one = (*namelist_one)->d_name;
     const char *name_two = (*namelist_two)->d_name;
 
@@ -81,10 +81,11 @@ int executeInstruction(char *key) {
     }
     return 0;
 }
+
 int executePagingInstruction(int index, int offset) {
-    char* fileName = getLine(index, offset);
-    FILE* fp = fopen(fileName, "r");
-    if (fp == NULL){
+    char *fileName = getLine(index, offset);
+    FILE *fp = fopen(fileName, "r");
+    if (fp == NULL) {
         printf("Can't open up page\n");
         return -1;
     }
@@ -94,14 +95,13 @@ int executePagingInstruction(int index, int offset) {
     // Read lines sequentially
     while (fgets(line, sizeof(line), fp)) {
         if (currentLine == offset) {
-            fclose(fp);  // Close the file before returning
+            fclose(fp); // Close the file before returning
             int errCode = parseInputFrameStore(line);
             if (errCode == -1) {
                 printf("Fatal error during instruction execution occured.\n");
                 return -1;
             }
             return 0;
-
         }
         currentLine++;
     }
@@ -119,7 +119,8 @@ int isProperPolicy(char *policy) {
     return 1;
 }
 
-void loadPageOnDemand(struct pagingReturn *pageReturn, int pageNumber, char *scriptName) {
+void loadPageOnDemand(struct pagingReturn *pageReturn, int pageNumber,
+                      char *scriptName) {
     if (pageReturn->pageTable[pageNumber] != -1) {
         return; // Page is already loaded or invalid page number
     }
@@ -162,7 +163,7 @@ int evictPage() {
     return victimFrame;
 }
 
-struct PCB* handlePageFault(struct PCB *pcb, int pageNumber) {
+struct PCB *handlePageFault(struct PCB *pcb, int pageNumber) {
     int frameIndex = getFreeFrame();
     if (frameIndex == -1) { // No free frame; evict a page
         frameIndex = evictPage();

@@ -16,10 +16,10 @@ struct PCB {
     // Program counter (pc). Keeps track of instruction to execute.
     // pc will always be smaller or equal to number_of_lines
     int pc;
-    // Pointer to next PCB 
+    // Pointer to next PCB
     struct PCB *next;
-    // Score is equal to number_of_lines when the program starts, we decrement it in aging
-    // can't go lower than 0 but it's used to sort the PCB
+    // Score is equal to number_of_lines when the program starts, we decrement
+    // it in aging can't go lower than 0 but it's used to sort the PCB
     int job_length_score;
     int pageTable[MAX_PAGES];
     char scriptName[100];
@@ -34,16 +34,18 @@ struct READY_QUEUE {
 extern struct READY_QUEUE readyQueue;
 struct PCB *createBackgroundPCB();
 struct PCB *createPCB(FILE *fp);
-struct PCB *createFramePCB(FILE *fp, struct pagingReturn *returnPage, char* fileName);
-struct PCB *createDuplicatePCB(char* fileName);
-struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage, char* scriptName);
+struct PCB *createFramePCB(FILE *fp, struct pagingReturn *returnPage,
+                           char *fileName);
+struct PCB *createDuplicatePCB(char *fileName);
+struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage,
+                                char *scriptName);
 struct PCB *instantiatePCB(int pid, int numberLines);
 void enqueue(struct PCB *pcb);
 struct PCB *dequeue();
-struct PCB* getPCBHead();
+struct PCB *getPCBHead();
 void freePCB(struct PCB *pcb);
 void selectionSortQueue();
-void addScriptName(struct PCB *pcb, char* scriptName);
+void addScriptName(struct PCB *pcb, char *scriptName);
 void swap(struct PCB *min, struct PCB *current);
 void ageReadyQueue();
 

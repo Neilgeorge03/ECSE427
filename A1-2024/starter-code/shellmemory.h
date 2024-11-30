@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include "shell.h"
+#include <stdio.h>
 
 #ifndef SHELLMEMORY_H
 #define SHELLMEMORY_H
@@ -16,7 +16,7 @@
 void mem_init();
 void initFrameStore();
 int getFreeFrame();
-void loadPageFrameStore(int index, char* fileName);
+void loadPageFrameStore(int index, char *fileName);
 char *mem_get_value(char *var);
 void mem_set_value(char *var, char *value);
 char *variable_get_value(char *var);
@@ -25,14 +25,13 @@ int loadScriptInMemory(FILE *fp, int pid);
 int clearMemory(int pid, int length);
 int loadScriptSharedMemory(char *scriptName);
 int removeScriptSharedMemory(char *scriptName);
-char* getLine(int frameIndex, int offset);
+char *getLine(int frameIndex, int offset);
 void deleteFrame(int frameIndex);
 void readDemandQueue();
-int addTailDemandQueue(int index, char* fileName);
+int addTailDemandQueue(int index, char *fileName);
 int removeDemandQueue(int index);
 int removeDemandHead();
 int checkScriptLoaded(char *scriptName);
-
 
 extern char frameStore[FRAME_STORE_SIZE][100];
 
@@ -48,12 +47,12 @@ struct sharedProcess {
 struct DemandPagingTracker {
     int frameIndex;
     char fileName[100];
-    struct DemandPagingTracker* next;
-    struct DemandPagingTracker* prev;
+    struct DemandPagingTracker *next;
+    struct DemandPagingTracker *prev;
 };
 
 struct DemandPagingQueue {
-    struct DemandPagingTracker* head;
+    struct DemandPagingTracker *head;
 };
 
 #endif
