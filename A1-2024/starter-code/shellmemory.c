@@ -204,6 +204,7 @@ void initFrameStore() {
 // Gets a free frame. Searches through linearly and returns the first
 // "hole".
 int getFreeFrame() {
+    // find fre Frame, if none we return -1 requiring an eviction
     for (int i = 0; i < (FRAME_STORE_SIZE / FRAME_SIZE); i++) {
         if ((strcmp(frameStore[i * FRAME_SIZE], "") == 0) &&
             (i + 2 < FRAME_STORE_SIZE)) {
@@ -214,6 +215,7 @@ int getFreeFrame() {
 }
 
 void deleteFrame(int frameIndex) {
+    // Remove frame from frameStore
     if (frameIndex == -1) {
         return;
     }

@@ -332,6 +332,7 @@ struct PCB *updatePCB(struct PCB *pcb, char *filename) {
 // TODO Better rename?
 void updatePCB2(char *filename) {
     // Same as before but can't name it better sorry bbg
+    // This worked in some instance when the previous command didn't work so I kept it
     struct PCB *current = getPCBHead();
     int index = findFileIndex(filename);
 
