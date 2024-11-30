@@ -1,7 +1,7 @@
 #include "pcb.h"
 #include "helpers.h"
-#include "shellmemory.h"
 #include "shell.h"
+#include "shellmemory.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,7 +13,7 @@ void enqueueHead(struct PCB *pcb);
 // this method creates the process control block for a script beginning with key
 // {pid}_0 set by the method set_value in shellmemory.h.
 // dynamically allocated pcb -> needs to be freed
-struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage, char* scriptName) {
+struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage, char *scriptName) {
     struct PCB *pcb = (struct PCB *)malloc(sizeof(struct PCB));
     if (!pcb) {
         printf("Failed to allocate memory for PCB.\n");
@@ -24,13 +24,14 @@ struct PCB *instantiateFramePCB(int pid, struct pagingReturn *returnPage, char* 
     pcb->pc = 0;
     pcb->next = NULL;
     pcb->job_length_score = returnPage->numberLines;
-    memcpy(pcb->pageTable, returnPage->pageTable, sizeof(returnPage->pageTable));
+    memcpy(pcb->pageTable, returnPage->pageTable,
+           sizeof(returnPage->pageTable));
     strcpy(pcb->scriptName, scriptName);
     enqueue(pcb);
-
     return pcb;
 }
-struct PCB *instantiatePCB(int pid, int numberLines){
+
+struct PCB *instantiatePCB(int pid, int numberLines) {
     struct PCB *pcb = (struct PCB *)malloc(sizeof(struct PCB));
     if (!pcb) {
         printf("Failed to allocate memory for PCB.\n");
@@ -45,7 +46,6 @@ struct PCB *instantiatePCB(int pid, int numberLines){
     enqueue(pcb);
 
     return pcb;
-
 }
 
 struct PCB *createPCB(FILE *fp) {
@@ -53,12 +53,13 @@ struct PCB *createPCB(FILE *fp) {
     int number_of_lines = loadScriptInMemory(fp, pid);
     return instantiatePCB(pid, number_of_lines);
 }
-struct PCB *createFramePCB(FILE *fp, struct pagingReturn *returnPage, char* fileName) {
+
+struct PCB *createFramePCB(FILE *fp, struct pagingReturn *returnPage, char *fileName) {
     int pid = generatePID();
     return instantiateFramePCB(pid, returnPage, fileName);
 }
 
-struct PCB *createDuplicatePCB(char* fileName) {
+struct PCB *createDuplicatePCB(char *fileName) {
     int pid = generatePID();
     struct PCB *current = readyQueue.head;
 
@@ -91,7 +92,7 @@ struct PCB *createBackgroundPCB() {
 
 void enqueue(struct PCB *pcb) {
     // Ensure that added job's (the tail's) next pointer
-    // is NULL to avoid cycles. 
+    // is NULL to avoid cycles.
     pcb->next = NULL;
     if (readyQueue.head == NULL) {
         readyQueue.head = pcb;
@@ -127,12 +128,12 @@ struct PCB *dequeue() {
 }
 
 void freePCB(struct PCB *pcb) {
-    if (removeScriptSharedMemory(pcb->scriptName) == 1){
-        for (int i = 0; i < (FRAME_STORE_SIZE / FRAME_SIZE); i++){
+    if (removeScriptSharedMemory(pcb->scriptName) == 1) {
+        for (int i = 0; i < (FRAME_STORE_SIZE / FRAME_SIZE); i++) {
             deleteFrame(pcb->pageTable[i]);
         }
+        free(pcb);
     }
-    free(pcb);
 }
 
 void swap(struct PCB *min, struct PCB *current) {
@@ -149,7 +150,8 @@ void swap(struct PCB *min, struct PCB *current) {
     int tempPC = min->pc;
 
     // Perform the swap
-    // Min nodes gets the values of the current node (iterates from the head to the end)
+    // Min nodes gets the values of the current node (iterates from the head to
+    // the end)
     min->pid = current->pid;
     min->job_length_score = current->job_length_score;
     min->number_of_lines = current->number_of_lines;
@@ -173,7 +175,8 @@ void selectionSortQueue() {
 
     while (current != NULL) {
         min = current; // min is the left most element
-        // If current != head it means that we know the elements left of current is smaller
+        // If current != head it means that we know the elements left of current
+        // is smaller
         next = current->next;
 
         while (next != NULL) {
@@ -187,9 +190,9 @@ void selectionSortQueue() {
         if (min != current) { // switching the nodes if it's not in order
             swap(min, current);
         }
-        current = current->next;    // iterate to the next node since we know current
-                                    // is sorted, so we can move to the
-                                    // next one
+        current = current->next; // iterate to the next node since we know
+                                 // current is sorted, so we can move to the
+                                 // next one
     }
 }
 
@@ -208,7 +211,7 @@ void ageReadyQueue() {
     }
 }
 
-struct PCB* getPCBHead(){
+struct PCB *getPCBHead() {
     struct PCB *current = readyQueue.head;
     return current;
 }

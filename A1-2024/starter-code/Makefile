@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -g
-framesize ?= 30   # Default frame store size
+framesize ?= 18   # Default frame store size
 varmemsize ?= 10  # Default variable store size
 
 DEFINES = -D FRAME_STORE_SIZE=$(framesize) -D VARIABLE_STORE_SIZE=$(varmemsize)

@@ -1,23 +1,25 @@
 #include "shell.h"
 #include "interpreter.h"
-#include "shellmemory.h"
 #include "pcb.h"
+#include "shellmemory.h"
+#include <dirent.h> // For directory operations (opendir, readdir, closedir)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h> // For mkdir
+#include <sys/types.h> // For types used by mkdir and other file-related operations
 #include <unistd.h>
-#include <dirent.h>     // For directory operations (opendir, readdir, closedir)
-#include <sys/stat.h>   // For mkdir
-#include <sys/types.h>  // For types used by mkdir and other file-related operations
 
 int fileCount = 0;
-struct pagingFileTracker pageTracker[100];
+struct pagingFileTracker pageTracker[MAX_PROCESSES];
 int parseInput(char ui[]);
 int is_interactive_mode();
 
 // Start of everything
 int main(int argc, char *argv[]) {
-    printf("Frame Store Size = X; Variable Store Size = Y\n");
+    printf("Frame Store Size = %d; Variable Store Size = %d\n",
+           FRAME_STORE_SIZE, VARIABLE_STORE_SIZE);
+    // help();
 
     char prompt = '$';              // Shell prompt
     char userInput[MAX_USER_INPUT]; // user's input stored here
@@ -94,26 +96,34 @@ int parseInput(char inp[]) {
     errorCode = interpreter(words, w);
 
     // Freeing memory to avoid memory leaks
-     for (int i = 0; i < w; i++) {
+    for (int i = 0; i < w; i++) {
         free(words[i]);
     }
 
     return errorCode;
 }
+int parseInputFrameStore(char *line) {
+    int errorCode;
+    for (char *token = strtok(line, ";"); token != NULL;
+         token = strtok(NULL, ";")) {
+        errorCode = parseInput(token);
+        if (errorCode == -1)
+            exit(99);
+    }
+    return errorCode;
+}
 
-
-
-
-
-void initBackingStore(){
-    char *filePath;
+void initBackingStore() {
     DIR *dir = opendir(BACKING_STORE);
-    if (dir){
+    if (dir) {
         // means backing store exists
         struct dirent *dirEntry;
-        while ((dirEntry = readdir(dir)) != NULL){
-            if (strcmp(dirEntry->d_name, ".") != 0 && strcmp(dirEntry->d_name, "..") != 0){
-                snprintf(filePath, sizeof(filePath), "%s/%s", BACKING_STORE, dirEntry->d_name);
+        char filePath[100];
+        while ((dirEntry = readdir(dir)) != NULL) {
+            if (strcmp(dirEntry->d_name, ".") != 0 &&
+                strcmp(dirEntry->d_name, "..") != 0) {
+                snprintf(filePath, sizeof(filePath), "%s/%s", BACKING_STORE,
+                         dirEntry->d_name);
                 remove(filePath);
             }
         }
@@ -123,15 +133,17 @@ void initBackingStore(){
     }
 }
 
-void delBackingStore(){
+void delBackingStore() {
     char *filePath;
     DIR *dir = opendir(BACKING_STORE);
-    if (dir){
+    if (dir) {
         // means backing store exists
         struct dirent *dirEntry;
-        while ((dirEntry = readdir(dir)) != NULL){
-            if (strcmp(dirEntry->d_name, ".") != 0 && strcmp(dirEntry->d_name, "..") != 0){
-                snprintf(filePath, sizeof(filePath), "%s/%s", BACKING_STORE, dirEntry->d_name);
+        while ((dirEntry = readdir(dir)) != NULL) {
+            if (strcmp(dirEntry->d_name, ".") != 0 &&
+                strcmp(dirEntry->d_name, "..") != 0) {
+                snprintf(filePath, sizeof(filePath), "%s/%s", BACKING_STORE,
+                         dirEntry->d_name);
                 remove(filePath);
             }
         }
@@ -160,14 +172,16 @@ struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName, FIL
     memset(pageReturn, 0, sizeof(struct pagingReturn));
 
     while (fgets(line, sizeof(line), fp)) {
-        if (lineCount % FRAME_SIZE == 0) {  // New page logic
+        if (lineCount % FRAME_SIZE == 0) { // New page logic
             offset = 0;
             frameIndex = getFreeFrame();
             int maxPages = MAX_PAGES;
-            if (backingStoreFile != NULL) fclose(backingStoreFile);
+            if (backingStoreFile != NULL)
+                fclose(backingStoreFile);
 
             // Create a new backing store file for this page
-            snprintf(filePath, sizeof(filePath), "%s/%s_page%d", dirName, scriptName, page);
+            snprintf(filePath, sizeof(filePath), "%s/%s_page%d", dirName,
+                     scriptName, page);
             backingStoreFile = fopen(filePath, "w");
             if (backingStoreFile == NULL) {
                 printf("Error: Failed to create backing store file\n");
@@ -175,108 +189,141 @@ struct pagingReturn *loadScriptBackingStore(char *dirName, char *scriptName, FIL
                 return NULL;
             }
 
-            if (page >= maxPages) {  // Check bounds for page table
+            if (page >= maxPages) { // Check bounds for page table
                 printf("Error: Page table overflow\n");
                 free(pageReturn);
                 fclose(backingStoreFile);
                 return NULL;
             }
 
-//            if (frameIndex == -1) {
-//                printf("No free frame available\n");
-//                free(pageReturn); // Clean up allocated memory
-//                if (backingStoreFile != NULL) fclose(backingStoreFile);
-//                return NULL;
-//            }
             if (page > 1 || frameIndex == -1) {
                 pageReturn->pageTable[page] = -1;
             } else { // Add frameIndex to page table
                 pageReturn->pageTable[page] = frameIndex;
             }
             page++;
-
         }
 
         // Write to backing store file
         fprintf(backingStoreFile, "%s", line);
         // Load the page into the frame store
-        loadPageFrameStore(frameIndex * FRAME_SIZE + offset, filePath);
-        if (page > 2){
+
+        if (frameIndex >= 0 && frameIndex < FRAME_STORE_SIZE / FRAME_SIZE) {
+            loadPageFrameStore(frameIndex * FRAME_SIZE + offset, filePath);
+        }
+        if (page > 2) {
             deleteFrame(frameIndex);
-        } else if (offset == 0){
+        } else if (offset == 0) {
             addTailDemandQueue(frameIndex, filePath);
         }
         offset++;
         lineCount++;
     }
     // Close the final file
-    if (backingStoreFile != NULL) fclose(backingStoreFile);
+    if (backingStoreFile != NULL)
+        fclose(backingStoreFile);
     // Populate the pagingReturn structure
     pageReturn->numberLines = lineCount;
 
     return pageReturn;
 }
 
-
-
 int findFileIndex(const char *filename) {
-    for (int i = 0; i < fileCount; i++) {
+    for (int i = 0; i < MAX_PROCESSES; i++) {
         if (strcmp(pageTracker[i].filename, filename) == 0) {
-            return i;  // Return the index if found
+            return i; // Return the index if found
         }
     }
-    return -1;  // File not found
+    return -1; // File not found
 }
-struct pagingReturn* getPageInfo(int index) {
+
+struct pagingReturn *getPageInfo(int index) {
     return pageTracker[index].pageData;
 }
 
-int addFileToPagingArray(struct pagingReturn* page, char *filename) {
+int addFileToPagingArray(struct pagingReturn *page, char *filename) {
     if (fileCount >= MAX_FILES) {
         printf("Error: Maximum file limit reached.\n");
         return -1;
     }
 
-
-    for (int i = 0; i < fileCount; i++){
-        if (strcmp(pageTracker[i].filename, filename) == 0){
+    for (int i = 0; i < fileCount; i++) {
+        if (strcmp(pageTracker[i].filename, filename) == 0) {
             return -1;
         }
     }
     strcpy(pageTracker[fileCount].filename, filename);
-    pageTracker[fileCount++].pageData = page;
+    pageTracker[fileCount].pageData = page;
+    fileCount++;
     return 0;
 }
 
+void removePageInfo(char *filename, int removeIndex) {
+    char *progPath = frameStore[removeIndex];
+    char progName[100];
+    int fileIndex;
+    int progFrameIndex;
+    char *progStart = strstr(progPath, "/prog");
 
-void removePageInfo(char* filename, int removeIndex){
-    int index = findFileIndex(filename);
-    pageTracker[index].pageData->pageTable[removeIndex] = -1;
+    if (progStart != NULL) {
+        progStart++;
+
+        char *progNameEnd = strstr(progStart, "_page");
+        if (progNameEnd != NULL) {
+            strncpy(progName, progStart, progNameEnd - progStart);
+            progName[progNameEnd - progStart] = '\0';
+
+            fileIndex = findFileIndex(progName);
+            progFrameIndex = atoi(progNameEnd + 5);
+
+            pageTracker[fileIndex].pageData->pageTable[progFrameIndex] = -1;
+
+            updatePCB2(progName);
+        }
+    }
 }
 
-struct PCB* updatePageInfo(struct PCB* pcb, char* filename, int pageTableIndex, int frameStoreIndex){
+struct PCB *updatePageInfo(struct PCB *pcb, char *filename, int pageTableIndex, int frameStoreIndex) {
     int index = findFileIndex(filename);
     char newFilename[256];
     pageTracker[index].pageData->pageTable[pageTableIndex] = frameStoreIndex;
     addTailDemandQueue(frameStoreIndex, filename);
-    for (int offset = 0; offset < FRAME_SIZE && pcb->pc+offset < pcb->number_of_lines; offset++){
-        snprintf(newFilename, sizeof(newFilename), "%s/%s_page%d", BACKING_STORE, filename, (pcb->pc/FRAME_SIZE));
+    for (int offset = 0;
+         offset < FRAME_SIZE && pcb->pc + offset < pcb->number_of_lines;
+         offset++) {
+        snprintf(newFilename, sizeof(newFilename), "%s/%s_page%d",
+                 BACKING_STORE, filename, (pcb->pc / FRAME_SIZE));
         loadPageFrameStore(frameStoreIndex * FRAME_SIZE + offset, newFilename);
     }
     return updatePCB(pcb, filename);
 }
 
-struct PCB* updatePCB(struct PCB* pcb, char *filename){
-    struct PCB* current = getPCBHead();
+struct PCB *updatePCB(struct PCB *pcb, char *filename) {
+    struct PCB *current = getPCBHead();
     int index = findFileIndex(filename);
 
-    while(current != NULL){
-        if (strcmp(filename, current->scriptName) == 0){
-            memcpy(current->pageTable, &pageTracker[index], sizeof(pageTracker[index]));
-            return current;
+    while (current != NULL) {
+        if (strcmp(filename, current->scriptName) == 0) {
+            memcpy(current->pageTable, &pageTracker[index],
+                   sizeof(pageTracker[index]));
         }
         current = current->next;
     }
-    memcpy(pcb->pageTable, pageTracker[index].pageData->pageTable, sizeof(pcb->pageTable));
+    memcpy(pcb->pageTable, pageTracker[index].pageData->pageTable,
+           sizeof(pcb->pageTable));
     return pcb;
+}
+
+// TODO Better rename?
+void updatePCB2(char *filename) {
+    struct PCB *current = getPCBHead();
+    int index = findFileIndex(filename);
+
+    while (current != NULL) {
+        if (strcmp(filename, current->scriptName) == 0) {
+            memcpy(current->pageTable, &pageTracker[index],
+                   sizeof(pageTracker[index]));
+        }
+        current = current->next;
+    }
 }

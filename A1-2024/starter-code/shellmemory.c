@@ -7,7 +7,6 @@
 int processCount = 0;
 struct DemandPagingQueue demandPagingQueue = {NULL};
 
-
 struct memory_struct shellmemory[MEM_SIZE];
 struct memory_struct variableStore[VARIABLE_STORE_SIZE];
 struct sharedProcess *processTable[MAX_PROCESSES];
@@ -61,8 +60,7 @@ void mem_set_value(char *var_in, char *value_in) {
 void variable_set_value(char *var_in, char *value_in) {
     int i;
 
-    for (i = 0; i < VARIABLE_STORE_SIZE ;
-    i++) {
+    for (i = 0; i < VARIABLE_STORE_SIZE; i++) {
         if (strcmp(variableStore[i].var, var_in) == 0) {
             variableStore[i].value = strdup(value_in);
             return;
@@ -70,8 +68,7 @@ void variable_set_value(char *var_in, char *value_in) {
     }
 
     // Value does not exist, need to find a free spot.
-    for (i = 0; i < VARIABLE_STORE_SIZE ;
-    i++) {
+    for (i = 0; i < VARIABLE_STORE_SIZE; i++) {
         if (strcmp(variableStore[i].var, "none") == 0) {
             variableStore[i].var = strdup(var_in);
             variableStore[i].value = strdup(value_in);
@@ -80,7 +77,6 @@ void variable_set_value(char *var_in, char *value_in) {
     }
     return;
 }
-
 
 // get value based on input key
 char *mem_get_value(char *var_in) {
@@ -100,11 +96,11 @@ char *variable_get_value(char *var_in) {
             return strdup(variableStore[i].value);
         }
     }
-    return NULL;
+    return "Variable does not exist";
 }
 
 // Loads script (pointer at by fp) into shell memory
-// returns the number of lines that it has stored using 
+// returns the number of lines that it has stored using
 // the key "pid_%d" when %d is [0, num of instructions)
 int loadScriptInMemory(FILE *fp, int pid) {
     char line[MAX_USER_INPUT];
@@ -114,7 +110,7 @@ int loadScriptInMemory(FILE *fp, int pid) {
 
     while (fgets(line, MAX_USER_INPUT - 1, fp)) {
         sprintf(key, "%d_%d", pid, current_line_num);
-        mem_set_value(key, line);
+        variable_set_value(key, line);
 
         memset(line, 0, MAX_USER_INPUT);
         memset(key, 0, sizeof(key));
@@ -156,29 +152,28 @@ int clearMemory(int pid, int length) {
     return 1;
 }
 
-
-
-int checkScriptLoaded(char *scriptName){
-    for (int i = 0; i < processCount; i++){
-        if (strcmp((processTable[i]->processName), scriptName) == 0){
+int checkScriptLoaded(char *scriptName) {
+    for (int i = 0; i < processCount; i++) {
+        if (strcmp((processTable[i]->processName), scriptName) == 0) {
             return i;
         }
     }
     return -1;
 }
 
-int loadScriptSharedMemory(char *scriptName){
+int loadScriptSharedMemory(char *scriptName) {
     int index = checkScriptLoaded(scriptName);
-    if (index != -1){
+    if (index != -1) {
         processTable[index]->count++;
         return 1;
     }
 
-    if (processCount > MAX_PROCESSES){
+    if (processCount > MAX_PROCESSES) {
         printf("Process table is full, can't add any new processes.\n");
         return -1;
     }
-    struct sharedProcess* newSharedProcess = malloc(sizeof(struct sharedProcess));
+    struct sharedProcess *newSharedProcess =
+        malloc(sizeof(struct sharedProcess));
     if (newSharedProcess == NULL) {
         printf("Memory allocation failed for new process.\n");
         return -1;
@@ -190,9 +185,9 @@ int loadScriptSharedMemory(char *scriptName){
     return 0;
 }
 
-int removeScriptSharedMemory(char *scriptName){
+int removeScriptSharedMemory(char *scriptName) {
     int index = checkScriptLoaded(scriptName);
-    if (index == -1){
+    if (index == -1) {
         printf("Can't remove script doesn't exist\n");
         return -1;
     }
@@ -200,59 +195,71 @@ int removeScriptSharedMemory(char *scriptName){
     return 0;
 }
 
-void initFrameStore(){
-    for (int i = 0; i < FRAME_STORE_SIZE; i++){
+void initFrameStore() {
+    for (int i = 0; i < FRAME_STORE_SIZE; i++) {
         strcpy(frameStore[i], "");
     }
 }
 
-int getFreeFrame(){
-    for (int i = 0; i < (FRAME_STORE_SIZE/FRAME_SIZE); i++){
-        if (strcmp(frameStore[i*FRAME_SIZE], "") == 0){
+// Gets a free frame. Searches through linearly and returns the first
+// "hole".
+int getFreeFrame() {
+    for (int i = 0; i < (FRAME_STORE_SIZE / FRAME_SIZE); i++) {
+        if ((strcmp(frameStore[i * FRAME_SIZE], "") == 0) &&
+            (i + 2 < FRAME_STORE_SIZE)) {
             return i;
         }
     }
     return -1;
 }
 
-void deleteFrame(int frameIndex){
-    if (frameIndex < 0 || frameIndex > (FRAME_STORE_SIZE/FRAME_SIZE)){
-
-        printf("Bool: %d", );
-        printf("DELTEFRAME: Error: line index incorrect\n");
+void deleteFrame(int frameIndex) {
+    if (frameIndex == -1) {
         return;
     }
-    for (int i = 0; i < FRAME_SIZE; i++){
-        if (strcpy(frameStore[frameIndex * FRAME_SIZE + i], "") != 0) {
+
+    if (frameIndex < 0 || frameIndex > (FRAME_STORE_SIZE / FRAME_SIZE)) {
+        printf("Error: line index incorrect\n");
+        return;
+    }
+
+    for (int i = 0;
+         (i < FRAME_SIZE) && (frameIndex * FRAME_SIZE + i < FRAME_STORE_SIZE);
+         i++) {
+        if (frameStore[frameIndex * FRAME_SIZE + i] != NULL) {
             strcpy(frameStore[frameIndex * FRAME_SIZE + i], "");
         }
     }
 }
 
-char* getLine(int frameIndex, int offset){
-    if (frameIndex < 0 || frameIndex > (FRAME_STORE_SIZE/FRAME_SIZE)){
+// Takes the frameIndex and offset (obtained from the page) to find
+// the line that has been stored. 
+char *getLine(int frameIndex, int offset) {
+    if (frameIndex < 0 || frameIndex > (FRAME_STORE_SIZE / FRAME_SIZE)) {
+        printf("GET LINE: %d", frameIndex);
         printf("Error: line index incorrect\n");
         return NULL;
-    } else if (offset < 0 || offset > FRAME_SIZE){
+    } else if (offset < 0 || offset > FRAME_SIZE) {
         printf("Error: offset incorrect\n");
         return NULL;
     }
     return frameStore[frameIndex * FRAME_SIZE + offset];
 }
 
-
-// TODO
 // Load page into frame store,
-void loadPageFrameStore(int index, char* fileName){
+void loadPageFrameStore(int index, char *fileName) {
     strcpy(frameStore[index], fileName);
 }
 
-
-int addTailDemandQueue(int index, char* fileName) {
-    struct DemandPagingTracker *newNode = (struct DemandPagingTracker *)malloc(sizeof(struct DemandPagingTracker));    
+// Adds a Node to the end of the DemandQueue.
+int addTailDemandQueue(int index, char *fileName) {
+    // Using heap allocation as these data structures must persists, even after the
+    // function ends.
+    struct DemandPagingTracker *newNode = (struct DemandPagingTracker *)malloc(
+        sizeof(struct DemandPagingTracker));
     if (newNode == NULL) {
         return -1;
-    } 
+    }
 
     newNode->frameIndex = index;
     strncpy(newNode->fileName, fileName, sizeof(newNode->fileName));
@@ -260,10 +267,11 @@ int addTailDemandQueue(int index, char* fileName) {
     newNode->fileName[sizeof(newNode->fileName) - 1] = '\0';
     newNode->next = NULL;
     newNode->prev = NULL;
+
     if (demandPagingQueue.head == NULL) {
         demandPagingQueue.head = newNode;
     } else {
-        // find tail 
+        // find tail
         struct DemandPagingTracker *currNode = demandPagingQueue.head;
         while (currNode->next != NULL) {
             currNode = currNode->next;
@@ -276,7 +284,7 @@ int addTailDemandQueue(int index, char* fileName) {
     return newNode->frameIndex;
 }
 
-
+// Removes a node from the DLL DemandQueue.
 int removeDemandQueue(int index) {
     if (demandPagingQueue.head == NULL) {
         return -1;
@@ -296,14 +304,14 @@ int removeDemandQueue(int index) {
         // replacig prev node with target next
         targetNode->prev->next = targetNode->next;
     } else {
-        // removing the head 
+        // removing the head
         demandPagingQueue.head = targetNode->next;
     }
-    
+
     if (targetNode->next != NULL) {
         // replacing next node with target prev
         targetNode->next->prev = targetNode->prev;
-    } 
+    }
 
     int retValue = targetNode->frameIndex;
     free(targetNode);
@@ -329,16 +337,15 @@ int removeDemandHead() {
     return retValue;
 }
 
+// For debugging purposes
 void readDemandQueue() {
     if (demandPagingQueue.head == NULL) {
         return; // Queue is empty
     }
 
     struct DemandPagingTracker *currHead = demandPagingQueue.head;
-    while (currHead != NULL){
+    while (currHead != NULL) {
         printf("currHead: %d, %s\n", currHead->frameIndex, currHead->fileName);
         currHead = currHead->next;
     }
 }
-
-

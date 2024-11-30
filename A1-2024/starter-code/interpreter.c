@@ -185,10 +185,10 @@ int quit() {
     // here, it may create a deadlock between both join locations.
     if (isMultithreadingMode && readyQueue.head != NULL) {
         printf("Bye!\n");
-        isQuitJoinThreads = 1; 
+        isQuitJoinThreads = 1;
         return 0;
     }
-
+    delBackingStore();
     printf("Bye!\n");
     exit(0);
 }
@@ -268,7 +268,8 @@ int print(char *var) {
 }
 
 int exec(char *arguments[], int argumentSize) {
-    // numOfOptionalSettings start at 1 and not 0 due to zero indexing. No other reason.
+    // numOfOptionalSettings start at 1 and not 0 due to zero indexing. No other
+    // reason.
     int numOfOptionalSettings = 1;
 
     // MT [optional] will always be the last argument. If it is, then in cases
@@ -282,7 +283,7 @@ int exec(char *arguments[], int argumentSize) {
 
     if (strcmp(arguments[argumentSize - numOfOptionalSettings], "#") == 0) {
         // Creating empty PCB. This is a placeholder type of PCB that when
-        // the the readyQueue reaches this background PCB with PID = -100 
+        // the the readyQueue reaches this background PCB with PID = -100
         // (not possible to get -100 PID otherwise), it'll execute instructions
         // from stdin
         createBackgroundPCB();
@@ -294,21 +295,30 @@ int exec(char *arguments[], int argumentSize) {
         return badcommand();
     }
 
-    struct pagingReturn* returnPage;
+    struct pagingReturn *returnPage;
     // Load files into Shell memory and create PCBs
     for (int i = 1; i < argumentSize - numOfOptionalSettings; i++) {
         FILE *fp = fopen(arguments[i], "rt");
-//        printf("file: %d\n", i);
+        //        printf("file: %d\n", i);
         if (fp == NULL) {
             printf("Failed to open file in exec.\n");
             return 3;
         }
-        if (strcmp(policy, "RR") == 0){
-            struct PCB* pcb;
+        if (strcmp(policy, "RR") == 0) {
+            struct PCB *pcb;
             if (loadScriptSharedMemory(arguments[i]) == 1) {
-                pcb = createDuplicatePCB(arguments[i]);
+                int fileIndex = findFileIndex(arguments[i]);
+                if (fileIndex == -1) {
+                    printf("Error");
+                    return -1;
+                } else {
+                    struct pagingReturn *returnPage = getPageInfo(fileIndex);
+                    pcb = createFramePCB(fp, returnPage, arguments[i]);
+                }
+
             } else {
-                returnPage = loadScriptBackingStore(BACKING_STORE, arguments[i], fp);
+                returnPage =
+                    loadScriptBackingStore(BACKING_STORE, arguments[i], fp);
                 addFileToPagingArray(returnPage, arguments[i]);
                 pcb = createFramePCB(fp, returnPage, arguments[i]);
             }
@@ -322,8 +332,8 @@ int exec(char *arguments[], int argumentSize) {
         executeFCFS();
     }
 
-    // Main difference between FCFS and SJF is SJF has their nodes sorted while regular FCFS doesn't.
-    // Once sorted they share the same logic
+    // Main difference between FCFS and SJF is SJF has their nodes sorted while
+    // regular FCFS doesn't. Once sorted they share the same logic
     else if (strcmp(policy, "SJF") == 0) {
         selectionSortQueue();
         executeFCFS();
@@ -343,18 +353,34 @@ int exec(char *arguments[], int argumentSize) {
     else if (strcmp(policy, "RR30") == 0) {
         executeRR(30);
     }
-
     return 0;
 }
 
 int run(char *script) {
+    struct pagingReturn *returnPage;
+    struct PCB *pcb;
     FILE *fp = fopen(script, "rt");
     if (fp == NULL) {
         printf("Failed to open file.\n");
         return 3;
     }
 
-    struct PCB *pcb = createPCB(fp);
+    if (loadScriptSharedMemory(script) == 1) {
+        int fileIndex = findFileIndex(script);
+        if (fileIndex == -1) {
+            printf("Error");
+            return -1;
+        } else {
+            struct pagingReturn *returnPage = getPageInfo(fileIndex);
+            pcb = createFramePCB(fp, returnPage, script);
+        }
+
+    } else {
+        returnPage = loadScriptBackingStore(BACKING_STORE, script, fp);
+        addFileToPagingArray(returnPage, script);
+        pcb = createFramePCB(fp, returnPage, script);
+    }
+
     fclose(fp);
 
     // Just need to execute everything sequentially, thus FCFS is sufficient
